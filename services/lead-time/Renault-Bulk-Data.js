@@ -3,7 +3,18 @@ const sql=require('mssql2')
 const moment = require('moment');
 module.exports={
     bulkInsertMRNData: async function(pool, dealer, location) {
-        console.log(data[0]);
+        // console.log(data[0]);
+        let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part no"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
         const values = data.map(item => {
 
             const shippedQuantity = (item['shipped quantity'] !== null && !isNaN(parseFloat(item['shipped quantity']))) ? parseFloat(item['shipped quantity']) : null;
@@ -68,10 +79,21 @@ module.exports={
     } catch (error) {
         console.error('Error during bulk insert:', error.message);
     }
-   
+}
     },
     
     bulkInsertPOData: async function(data, pool, dealer, location) {
+        let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["order part number"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
         const values = data.map(item => 
             {
                 const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -128,30 +150,10 @@ module.exports={
             console.error('Error during bulk insert:', error.message);
         }
     }
+}
     
 }
 
-async  function renaultPOFileTimeSPOperations(pool){
-    // const pool=await connection.connectDB();
-    const request=await pool.request();
-    const res = await request.execute('sp_renaultPOFileLeadTimeOperations');
-    //  console.log("Stored procedure executed successfully.",res);
-  
-    return res;
-  
-
-}
-
-async  function renaultMRNFileTimeSPOperations(pool){
-    // const pool=await connection.connectDB();
-    const request=await pool.request();
-    const res = await request.execute('sp_renaultMRNFileLeadTimeOperations');
-    //  console.log("Stored procedure executed successfully.",res);
-  
-    return res;
-  
-
-}
 
 function excelSerialToDate(serialNumber) {
     // Excel date starts at January 1, 1900, so we calculate the date from that point.

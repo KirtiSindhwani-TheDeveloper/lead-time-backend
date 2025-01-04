@@ -4,6 +4,18 @@ const moment = require("moment");
 module.exports = {
   bulkInsertData: async function(pool,dealer,location) {
 
+    let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part number"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
+
     const values = data.map(item => {
       const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
       const Location = location || item["location"]; 
@@ -80,20 +92,10 @@ module.exports = {
     await request.query('TRUNCATE TABLE Honda_2W_purchase_register_File_Lead_Time_latest_data');
     // Execute the bulk insert
     await request.bulk(table);
-   
+  }
   }
 }
 
-async  function honda2WLeadTimeOperations(pool){
-        // const pool=await connection.connectDB();
-        const request=await pool.request();
-        const res = await request.execute('sp_Honda2WPOLeadTimeOperations');
-        //  console.log("Stored procedure executed successfully.",res);
-      
-        return res;
-      
-    
-}
 
 function excelSerialToDate(serialNumber) {
     // Excel date starts at January 1, 1900, so we calculate the date from that point.

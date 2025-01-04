@@ -4,7 +4,18 @@ const moment = require("moment");
 module.exports = {
     bulkPOInsertData: async function(pool, dealer, location) {
         console.log('----------------------it is executing');
-        
+        let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part"]){
+
+                    isNullFound=true;
+                    
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
         const values = data.map(item => {
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
             const Location = location || item["location"]; 
@@ -116,6 +127,7 @@ module.exports = {
             console.error('Error during bulk insert:', error);
             throw error; // Rethrow the error for further handling if necessary
         }
+    }
     }
     
 }

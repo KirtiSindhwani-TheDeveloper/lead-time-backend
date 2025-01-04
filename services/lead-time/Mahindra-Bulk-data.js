@@ -4,43 +4,47 @@ const moment = require("moment");
 module.exports = {
     bulkInsertData: async function(pool, dealer, location, res,headers) {
         try{
-            let isColumnMatch=false;
-            const expectedColumns = [
-                "po release date",
-                "po type",
-                "po status",
-                "po number",
-                "po group",
-                "po line item status",
-                "po rejection reason",
-                "part no",
-                "so qty",
-                "dealer",
-                "location"
-            ];
-            const uploadedColumns = headers
-            // Extract the columns from the first row of data (assuming the first row is the header)
-            if (!columnsMatch(expectedColumns, uploadedColumns)) {
-                return res.status(400).json({
-                    status: 400,
-                    message: 'Wrong file Selected'
+            // let isColumnMatch=false;
+            // const expectedColumns = [
+            //     "po release date",
+            //     "po type",
+            //     "po status",
+            //     "po number",
+            //     "po group",
+            //     "po line item status",
+            //     "po rejection reason",
+            //     "part no",
+            //     "so qty",
+            //     "dealer",
+            //     "location"
+            // ];
+            // const uploadedColumns = headers
+            // // Extract the columns from the first row of data (assuming the first row is the header)
+            // if (!columnsMatch(expectedColumns, uploadedColumns)) {
+            //     return res.status(400).json({
+            //         status: 400,
+            //         message: 'Wrong file Selected'
 
-                });
+            //     });
+            // }
+            let isNullFound=false;
+            for(let item of data){
+                const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+            const Location = location || item["location"];
+                if(!Dealer || !Location || !item["part no"]){
+                        isNullFound=true;
+                        
+                        return isNullFound;
+                        
+                    
+                }
             }
-          
+            if(!isNullFound){
             const values = data.map(item => 
                 {
                     const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
                     const Location = location || item["location"]; 
-                    const partNo=item['part no']
-                    if (!partNo || !Dealer || !Location) {
-                        
-                        return res.status(400).json({ 
-                            status: 400, 
-                            message: 'Part Number, Dealer, or Location cannot be null or undefined',
-
-                        });
-                    }
+                    
                     return [
                     // Adjust the mapping to fit the new column names
                     item["po release date"] !== "0-00-00" && item["po release date"] !== null ? convertExcelSerialToIST(parseFloat(item['po release date']), item) : null, // Po Release Date
@@ -95,7 +99,8 @@ module.exports = {
                 // Execute the bulk insert
                 await request.bulk(table);
                 isColumnMatch=true;
-                return { status: 200, message: 'Bulk insert successful!',columns:expectedColumns};
+                // return { status: 200, message: 'Bulk insert successful!',columns:expectedColumns};
+            }
         }
         catch (error) {
             console.error("Error during bulk insert:", error);
@@ -108,11 +113,24 @@ module.exports = {
 
     bulkMRNInsertData: async function(pool, dealer, location,res,headers) {
         console.log('----------------------it is executing');
-        
+        let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part number"]){
+
+                    isNullFound=true;
+                    
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
+
         const values = data.slice(1).map(item => 
         {
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
             const Location = location || item["location"]; 
+        
             return [
             // Adjust field mappings to match new columns
             item["receipt date"] !== "0-00-00" && item["receipt date"] !== null 
@@ -175,7 +193,7 @@ module.exports = {
         await request.query('TRUNCATE TABLE Mahindra_receipt_file_lead_Time_Latest_data');
         // Execute the bulk insert
         await request.bulk(table);
-
+    }
     }
     
     

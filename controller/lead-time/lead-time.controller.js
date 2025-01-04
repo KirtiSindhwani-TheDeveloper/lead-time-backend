@@ -119,7 +119,8 @@ res.setHeader('Content-Type', 'application/json');
             try {
                
                   const result = await leadTimeService.uploadData(req.body, data,res);
-                  res.status(200).send({ data: result ,});
+                  console.log("res ",result)
+                  res.status(200).send({ data: result});
 
                 
             } catch (error) {

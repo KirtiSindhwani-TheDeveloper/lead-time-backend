@@ -3,6 +3,18 @@ const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
     bulkInsertData: async function(pool, dealer, location) {
+        let isNullFound=false;
+        // console.log(data);
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["material no"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
         const values = data.map(item => 
             {
                 const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -57,7 +69,7 @@ module.exports = {
         await request.query('TRUNCATE TABLE JCB_PO_file_lead_time_latest_data');
         // Execute the bulk insert
         await request.bulk(table);
-    
+        }
       
 
     },
@@ -65,7 +77,18 @@ module.exports = {
 
     bulkMRNInsertData: async function(pool, dealer, location) {
 
-        console.log('----------------------it is executing',data[0])
+        // console.log('----------------------it is executing',data[0])
+        let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part code"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
         const values = data.map(item => {
           // console.log(item)
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -115,7 +138,7 @@ module.exports = {
         await request.query('TRUNCATE TABLE JCB_mrn_file_lead_time_latest_data');
         // Execute the bulk insert
         await request.bulk(table);
-    
+        }
        
     },
     

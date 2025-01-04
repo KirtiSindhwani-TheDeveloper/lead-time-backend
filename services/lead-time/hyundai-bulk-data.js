@@ -3,6 +3,17 @@ const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
     bulkInsertData: async function(data,pool, dealer, location) {
+      let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part no current"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
         const values = data.slice(1).map(item => {
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
       const Location = location || item["location"]; 
@@ -58,10 +69,21 @@ module.exports = {
         await request.query('TRUNCATE TABLE Hyundai_bo_file_lead_time_latest_data');
         // Execute the bulk insert
         await request.bulk(table);
-    
+      }
     },
 
     bulkPOInsertData:async function(pool,dealer,location){
+      let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part no"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
       const values = data.map(item => {
       const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
       const Location = location || item["location"]; 
@@ -110,7 +132,7 @@ module.exports = {
         await request.query('TRUNCATE TABLE Hyundai_Pur_File_lead_time_latest_data');
         // Execute the bulk insert operation
         await request.bulk(table);
-    
+      }
     }
     
 }

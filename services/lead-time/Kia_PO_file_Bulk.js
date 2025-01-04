@@ -3,6 +3,17 @@ const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
   bulkInsertData: async function(pool,dealer,location) {
+    let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part no"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
     const values = data.map(item => 
     {
       const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -49,11 +60,22 @@ module.exports = {
     // Execute the bulk insert
     await request.bulk(table);
     // await request.execute('usp_UpdateOrInsertHeroLeadTimeFile');
-  
+        }
   },
 
   bulkInsertMRNData:async function(data,pool,dealer,location){
     // console.log("item",data[0])
+    let isNullFound=false;
+        for(let item of data){
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+        const Location = location || item["location"];
+            if(!Dealer || !Location || !item["part no current"]){
+
+                    isNullFound=true;
+                    return isNullFound;    
+            }
+        }
+        if(!isNullFound){
     const values = data.slice(1).map(item => 
     {
       const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -116,28 +138,9 @@ module.exports = {
         console.error('Error during bulk insert:', error.message);
     }
   }
-}
-async  function kiaPurFileTimeSPOperations(pool){
-        // const pool=await connection.connectDB();
-        const request=await pool.request();
-        const res = await request.execute('sp_KiaPurFileLeadTimeOperations');
-        //  console.log("Stored procedure executed successfully.",res);
-      
-        return res;
-      
-    
+  }
 }
 
-async  function kiaBOFileTimeSPOperations(pool){
-    // const pool=await connection.connectDB();
-    const request=await pool.request();
-    const res = await request.execute('[sp_KiaBOFileLeadTimeOperations]');
-    //  console.log("Stored procedure executed successfully.",res);
-  
-    return res;
-  
-
-}
 
 function excelSerialToDate(serialNumber) {
     // Excel date starts at January 1, 1900, so we calculate the date from that point.
