@@ -69,7 +69,8 @@ module.exports = {
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["part no current"]){
+            if(!Dealer || !Location || !item["part no current"] || !item["part no order"]
+            ){
 
                     isNullFound=true;
                     return isNullFound;    
