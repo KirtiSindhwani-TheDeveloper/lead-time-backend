@@ -1,0 +1,15 @@
+const express=require('express')
+const router=express.Router();
+const utilitesRoutes=require('./utilities/utilites.route')
+const mappingRoutes=require('./mapping/mapping.route')
+const leadTimeRoutes=require('./lead-time/lead-time.route')
+const loginRoutes=require('./login/login.route')
+const userRoutes=require('./user-management/user.route')
+const authRoutes=require('./login/auth.route')
+router.use('/mapping',mappingRoutes)
+router.use('/utilities',utilitesRoutes)
+router.use('/leadtime',leadTimeRoutes)
+router.use('/login',loginRoutes)
+router.use('/user',userRoutes)
+router.use('/auth-user',authRoutes)
+module.exports=router;
