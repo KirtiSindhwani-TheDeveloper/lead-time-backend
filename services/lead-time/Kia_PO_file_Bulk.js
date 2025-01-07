@@ -7,7 +7,7 @@ module.exports = {
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["part no"]){
+            if(!Dealer || !Location || !item["part no"] || item["part no"]==0){
 
                     isNullFound=true;
                     return isNullFound;    
@@ -66,10 +66,11 @@ module.exports = {
   bulkInsertMRNData:async function(data,pool,dealer,location){
     // console.log("item",data[0])
     let isNullFound=false;
+    data=data.slice(1);
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["part no current"] || !item["part no order"]
+            if(!Dealer || !Location || !item["part no current"] || !item["part no order"] || item["part no current"]==0 || item["part no order"]==0
             ){
 
                     isNullFound=true;

@@ -450,7 +450,7 @@ module.exports = {
         
         if(dealer && location){
           const result = await readExcelFile1(dealer,location,req.filePath);
-        // console.log(result.headers);
+        console.log(result.headers);
         rowCount=rowCount-1
         data = result.data;
          insertResponse=  await hyundaiBulkData.bulkInsertData(data,pool,dealer,location)
@@ -463,8 +463,9 @@ module.exports = {
           }
         }
         else{
+          console.log("hyundai po")
           const result = await readExcelFile1(null,null,req.filePath);
-        // console.log(result.headers);
+         console.log(result.headers);
         rowCount=rowCount-1
         data = result.data;
         insertResponse=  await hyundaiBulkData.bulkInsertData(data,pool,null,null)

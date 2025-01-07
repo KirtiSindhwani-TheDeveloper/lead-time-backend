@@ -4,11 +4,13 @@ const moment = require("moment");
 module.exports = {
     bulkInsertData: async function(data,pool, dealer, location) {
       let isNullFound=false;
+      data=data.slice(1);
+      // console.log(data[0])
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["part no current"] ||!item["part no order"]){
-
+            if(!Dealer || !Location || !item["part no current"] ||!item["part no order"] || item["part no current"]==0 || item["part no order"]==0){
+                console.log(item)
                     isNullFound=true;
                     return isNullFound;    
             }
@@ -77,7 +79,7 @@ module.exports = {
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["part no"]){
+            if(!Dealer || !Location || !item["part no"] || item["part no"]==0){
 
                     isNullFound=true;
                     return isNullFound;    

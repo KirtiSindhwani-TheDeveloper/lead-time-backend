@@ -8,7 +8,7 @@ module.exports={
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["part no"]){
+            if(!Dealer || !Location || !item["part no"] || item["part no"]==0){
 
                     isNullFound=true;
                     return isNullFound;    
@@ -87,7 +87,7 @@ module.exports={
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["order part number"]){
+            if(!Dealer || !Location || !item["order part number"] || item["order part number"]==0){
 
                     isNullFound=true;
                     return isNullFound;    
