@@ -2,6 +2,7 @@ const { stat } = require("fs");
 const leadTimeService = require('../../services/lead-time/lead-time.service');
 const mappingService=require('../../services/mapping/mapping.service');
 const locationService=require('../../services/utilites/location.service')
+const fs=require('fs')
 module.exports = {
   addColumns: async function (req, res) {
     try {
@@ -84,11 +85,14 @@ module.exports = {
       const fileTypes = req.body.fileType;
       const data=await leadTimeService.getExportFileTypeData(req.body,res);
 
-      // console.log("data",data)
+     //console.log("data",data)
       const fileBuffer = await leadTimeService.createExcelFile(
        data,fileTypes
       );
 
+      // const fileBuffer1=await leadTimeService.createLogsFile(data,res);
+      
+ 
       // Send file as response
       res.setHeader(
         "Content-Type",
@@ -98,8 +102,32 @@ module.exports = {
         "Content-Disposition",
         "attachment; filename=multi_sheets.xlsx"
       );
-      res.send(fileBuffer);
+      // res.setHeader("Content-Type", "application/json");
+     res.send(
+     fileBuffer)
+   
     } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error generating Excel file", error: error.message });
+    }
+  },
+
+  exportLogMultisheetData:async function (req,res) {
+    try{
+    const data=await leadTimeService.getExportFileTypeData(req.body,res);
+
+
+    const fileBuffer1=await leadTimeService.createLogsFile(data,res);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=multi_sheets.xlsx"
+    );
+    res.send(fileBuffer1)}catch (error) {
       res
         .status(500)
         .json({ message: "Error generating Excel file", error: error.message });

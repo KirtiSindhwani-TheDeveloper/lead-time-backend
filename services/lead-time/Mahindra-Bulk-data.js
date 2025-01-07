@@ -33,7 +33,8 @@ module.exports = {
             const Location = location || item["location"];
                 if(!Dealer || !Location || !item["part no"]){
                         isNullFound=true;
-                        
+                        // console.log(Dealer,Location)
+                        console.log(item);
                         return isNullFound;
                         
                     
@@ -118,7 +119,7 @@ module.exports = {
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
             if(!Dealer || !Location || !item["part number"]){
-
+                console.log(item)
                     isNullFound=true;
                     
                     return isNullFound;    

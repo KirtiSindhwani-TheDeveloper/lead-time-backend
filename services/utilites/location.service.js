@@ -13,7 +13,7 @@ module.exports = {
       dealer_id = req.dealer_id;
       const request = new sql.Request(transaction);
       const query = `
-         Select Location_id,Location_name from Location_Master where dealer_id=@dealer_id
+         Select locationID as Location_id,location as Location_name from z_scope.dbo.locationInfo where dealerID=@dealer_id and status=1
         `;
 
       // Execute the insert query for each row
@@ -46,7 +46,7 @@ module.exports = {
       dealer_id = req.dealer_id;
       const request = new sql.Request(transaction);
       const query = `
-     Select location_id,location_name from Location_Master where dealerID=@dealer_id
+     Select locationID as location_id,location as location_name from z_scope.dbo.locationInfo where dealerID=@dealer_id and status=1
     `;
 
       // Execute the insert query for each row
@@ -73,13 +73,19 @@ module.exports = {
       brandId=req.brand_id;
       console.log(brandId)
      const pool=await connection.connectDB()
-      const query = `
+  //     const query = `
      
-  select b.brand,c.dealer_name,a.location_name
-  from Location_Master a 
-  inner join Brand_Master b on a.brand_id=b.brand_id
-  inner join Dealer_Master c on a.dealer_id=c.dealer_id 
-  where a.brand_id=@brandId
+  // select b.brand,c.dealer_name,a.location_name
+  // from z_scope.dbo.Location_Master a 
+  // inner join z_scope.dbo.Brand_Master b on a.brand_id=b.brand_id
+  // inner join z_scope.dbo.Dealer_Master c on a.dealer_id=c.dealer_id 
+  // where a.brand_id=@brandId
+  //   `;
+    const query=` select b.vcbrand,c.vcName,a.location
+  from z_scope.dbo.locationInfo a 
+  inner join z_scope.dbo.Brand_Master b on a.brandID=b.bigid
+  inner join z_scope.dbo.Dealer_Master c on a.dealerID=c.bigid
+  where a.brandID=@brandId and where status=1
     `;
 
       // Execute the insert query for each row

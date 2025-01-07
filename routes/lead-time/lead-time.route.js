@@ -13,4 +13,5 @@ router.post('/file-type',leadTimeController.getFileTypes)
 router.post('/uploaded-logs',leadTimeController.getUploadLogs)
 router.post('/read-sub-header',leadTimeController.readSubHeader)
 router.post('/mapping-exist',leadTimeController.mappingExist)
+router.post('/download-logs',leadTimeController.exportLogMultisheetData)
 module.exports=router;

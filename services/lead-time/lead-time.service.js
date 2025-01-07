@@ -172,41 +172,28 @@ module.exports = {
     return new Promise((resolve, reject) => {
       try {
         let sheet1 ,sheet2,sheet3,sheet4,sheet5,sheet6;
-        // console.log("fileTypes")
+         
         // Create a new workbook
         // console.log("data of multi sheets ",data)
-       
-        const wb = xlsx.utils.book_new();
-        if(data.length==6){
-         
-          sheet3 = xlsx.utils.json_to_sheet(data[4]);
-          sheet4 = xlsx.utils.json_to_sheet(data[5]);
-          // Create sheets from data
-          sheet5 = xlsx.utils.json_to_sheet(data[0]);
-          sheet6 = xlsx.utils.json_to_sheet(data[1]);
-        
-          sheet2 = xlsx.utils.json_to_sheet(data[3]);
-          sheet1 = xlsx.utils.json_to_sheet(data[2]);
-         
-        }
-        if(data.length==8){
-         
-          sheet6 = xlsx.utils.json_to_sheet(data[1]);
-          sheet5 = xlsx.utils.json_to_sheet(data[0]);
-          // Create sheets from data
-          sheet7 = xlsx.utils.json_to_sheet(data[2]);
-          sheet8 = xlsx.utils.json_to_sheet(data[3]);
-          sheet1 = xlsx.utils.json_to_sheet(data[4]);
-          sheet2 = xlsx.utils.json_to_sheet(data[5]);
-          sheet3 = xlsx.utils.json_to_sheet(data[6]);
-          sheet4= xlsx.utils.json_to_sheet(data[7]);
-         
-        }
-        
-       
-      
-        for(let i=0;i<fileTypes.length;i++){
+
+        const wb=xlsx.utils.book_new();
+          if(data.length==6){
+            sheet1 = xlsx.utils.json_to_sheet(data[2]);
+            sheet2 = xlsx.utils.json_to_sheet(data[3]);
+            sheet3 = xlsx.utils.json_to_sheet(data[4]);
+            sheet4= xlsx.utils.json_to_sheet(data[5]);
+          }
+          if(data.length==8){
+            sheet1 = xlsx.utils.json_to_sheet(data[4]);
+            sheet2 = xlsx.utils.json_to_sheet(data[5]);
+            sheet3 = xlsx.utils.json_to_sheet(data[6]);
+            sheet4= xlsx.utils.json_to_sheet(data[7]);
+
+          }
+           let size=fileTypes.length
+        for(let i=0;i<size;i++){
           if(fileTypes[i]==='Partwise OrderType'){
+            console.log("fileTypes",fileTypes.length)
             xlsx.utils.book_append_sheet(wb, sheet1, "Partwise OrderType");
           }
           if(fileTypes[i]==='Partwise Summary'){
@@ -220,22 +207,23 @@ module.exports = {
           }
           
         } 
-        if(data.length==6){
-          xlsx.utils.book_append_sheet(wb, sheet5, "Dealer & Location");
-          xlsx.utils.book_append_sheet(wb, sheet6, "Part Not in Master");
-        }
-        if(data.length==8){
-          xlsx.utils.book_append_sheet(wb, sheet5, "PO Dealer & Location");
-          xlsx.utils.book_append_sheet(wb, sheet6, "PO Part Not in Master");
-          xlsx.utils.book_append_sheet(wb, sheet7, "MRN Dealer & Location");
-          xlsx.utils.book_append_sheet(wb, sheet8, "MRN Part Not in Master");
-        }
+        // if(data.length==6){
+        //   xlsx.utils.book_append_sheet(wb1, sheet5, "Dealer & Location");
+        //   xlsx.utils.book_append_sheet(wb1, sheet6, "Part Not in Master");
+        // }
+        // if(data.length==8){
+        //   xlsx.utils.book_append_sheet(wb1, sheet5, "PO Dealer & Location");
+        //   xlsx.utils.book_append_sheet(wb1, sheet6, "PO Part Not in Master");
+        //   xlsx.utils.book_append_sheet(wb1, sheet7, "MRN Dealer & Location");
+        //   xlsx.utils.book_append_sheet(wb1, sheet8, "MRN Part Not in Master");
+        // }
 
         // xlsx.utils.book_append_sheet(wb, sheet2, "Partwise Summary");
         // xlsx.utils.book_append_sheet(wb, sheet3, "Overall Summary");
         // xlsx.utils.book_append_sheet(wb, sheet4, "M1 Month");
         // Convert workbook to buffer and resolve
         const buffer = xlsx.write(wb, { bookType: "xlsx", type: "buffer" });
+        
         // console.log('Buffer created with size:', buffer.length);
         resolve(buffer);
       } catch (error) {
@@ -244,7 +232,50 @@ module.exports = {
       }
     });
   },
+  createLogsFile:async function(data,res){
+    return new Promise((resolve, reject) => {
+      try {
+        let sheet1 ,sheet2,sheet3,sheet4,sheet5,sheet6;
+        // console.log("fileTypes")
+        // Create a new workbook
+         //console.log("data of multi sheets ",data)
+      
+        const wb1=xlsx.utils.book_new();
+        if(data.length==6){
+         
+          sheet3 = xlsx.utils.json_to_sheet(data[0]);
+          sheet4 = xlsx.utils.json_to_sheet(data[1]);
+         
+        }
+        if(data.length==8){
+        
+          sheet1 = xlsx.utils.json_to_sheet(data[0]);
+          sheet2 = xlsx.utils.json_to_sheet(data[1]);
+          sheet3 = xlsx.utils.json_to_sheet(data[2]);
+          sheet4= xlsx.utils.json_to_sheet(data[3]);
+         
+        }
+      
+        if(data.length==6){
+          xlsx.utils.book_append_sheet(wb1, sheet3, "Dealer & Location");
+          xlsx.utils.book_append_sheet(wb1, sheet4, "Part Not in Master");
+        }
+        if(data.length==8){
+          xlsx.utils.book_append_sheet(wb1, sheet1, "PO Dealer & Location");
+          xlsx.utils.book_append_sheet(wb1, sheet2, "PO Part Not in Master");
+          xlsx.utils.book_append_sheet(wb1, sheet3, "MRN Dealer & Location");
+          xlsx.utils.book_append_sheet(wb1, sheet4, "MRN Part Not in Master");
+        }
+        const buffer1=xlsx.write(wb1,{ bookType: "xlsx", type: "buffer" })
+        // console.log('Buffer created with size:', buffer1.length);
 
+        resolve(buffer1);
+      } catch (error) {
+        console.log("error ", error.message);
+        reject(error);
+      }
+    });
+  },
   uploadData: async function (req, excelData,res) {
     try {
       // console.log(req.data)
@@ -288,12 +319,13 @@ module.exports = {
       fileTypeId=req.fileTypeId;
 
       if (brandId == 33 && fileType == "PO") {
-        const result = await readExcelFile1(req.filePath);
-        // console.log(result.headers);
-        rowCount=rowCount-1
-        data = result.data;
+       
         // console.log(data)
         if(dealer && location ){
+          const result = await readExcelFile1(dealer,location,req.filePath);
+          // console.log(result.headers);
+          rowCount=rowCount-1
+          data = result.data;
          insertResponse=  await kiaBulkData.bulkInsertMRNData(data,pool,dealer,location)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
@@ -305,6 +337,10 @@ module.exports = {
          
         }
         else{
+          const result = await readExcelFile1(null,null,req.filePath);
+          // console.log(result.headers);
+          rowCount=rowCount-1
+          data = result.data;
         insertResponse=  await kiaBulkData.bulkInsertMRNData(data,pool,null,null)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
@@ -411,11 +447,12 @@ module.exports = {
       }
 
       if(brandId==11 && fileType=='PO'){
-        const result = await readExcelFile1(req.filePath);
+        
+        if(dealer && location){
+          const result = await readExcelFile1(dealer,location,req.filePath);
         // console.log(result.headers);
         rowCount=rowCount-1
         data = result.data;
-        if(dealer && location){
          insertResponse=  await hyundaiBulkData.bulkInsertData(data,pool,dealer,location)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
@@ -426,6 +463,10 @@ module.exports = {
           }
         }
         else{
+          const result = await readExcelFile1(null,null,req.filePath);
+        // console.log(result.headers);
+        rowCount=rowCount-1
+        data = result.data;
         insertResponse=  await hyundaiBulkData.bulkInsertData(data,pool,null,null)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
@@ -1132,7 +1173,7 @@ async function heroLeadTimeSPOperations(pool){
 
 }
 
-async function readExcelFile1(filePath) {
+async function readExcelFile1(dealer,location,filePath) {
   try {
     // Read the Excel file
     const workbook = XLSX.readFile(filePath);
@@ -1142,21 +1183,45 @@ async function readExcelFile1(filePath) {
     let data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
     const headerRow = data[0];
+    let subHeaders;
     //  console.log("headerRow ",headerRow)
-    const subHeaders = [
-      "",
-      "",
-      "ORDER",
-      "CURRENT",
-      "",
-      "",
-      "ORDER",
-      "CURRENT",
-      "",
-      "",
-      "",
-      "",
-    ];
+    if(dealer && location){
+      subHeaders = [
+    
+        "",
+        "",
+        "ORDER",
+        "CURRENT",
+        "",
+        "",
+        "ORDER",
+        "CURRENT",
+        "",
+        "",
+        "",
+        "",
+      ];
+    }
+    else{
+      subHeaders = [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "ORDER",
+        "CURRENT",
+        "",
+        "",
+        "ORDER",
+        "CURRENT",
+        "",
+        "",
+        "",
+        "",
+      ];
+    }
+     
 
     const cleanedData = data.slice(1); // Skip the header row for actual data
     // Function to combine headers and subheaders, handling empty items
