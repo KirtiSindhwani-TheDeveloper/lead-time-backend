@@ -2,13 +2,13 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-    bulkPOInsertData: async function(pool, dealer, location) {
+    bulkPOInsertData: async function(data,pool, dealer, location) {
         // console.log('----------------------it is executing');
         let isNullFound=false;
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
-            if(!Dealer || !Location || !item["part"] || item["part"]){
+            if(!Dealer || !Location || !item["part"] || item["part"]==0){
 
                     isNullFound=true;
                     

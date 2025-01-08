@@ -2,7 +2,7 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-  bulkInsertData: async function(pool,dealer,location) {
+  bulkInsertMRNData: async function(data,pool,dealer,location) {
     let isNullFound=false;
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -63,7 +63,7 @@ module.exports = {
         }
   },
 
-  bulkInsertMRNData:async function(data,pool,dealer,location){
+  bulkInsertPOData:async function(data,pool,dealer,location){
     // console.log("item",data[0])
     let isNullFound=false;
     data=data.slice(1);

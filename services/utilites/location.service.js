@@ -85,7 +85,7 @@ module.exports = {
   from z_scope.dbo.locationInfo a 
   inner join z_scope.dbo.Brand_Master b on a.brandID=b.bigid
   inner join z_scope.dbo.Dealer_Master c on a.dealerID=c.bigid
-  where a.brandID=@brandId and where status=1
+  where a.brandID=@brandId and a.status=1
     `;
 
       // Execute the insert query for each row

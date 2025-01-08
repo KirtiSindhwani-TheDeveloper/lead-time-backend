@@ -282,10 +282,11 @@ module.exports = {
       fileMissMatch=false;
       brandId = req.brand_id;
       // console.log("jds", brandId)
-      data = excelData.data;
+      // data = excelData.data;
       headers=excelData.headers;
       userId=req.userId;
       fileType = req.fileType;
+      console.log("--------",fileType)
       let pool = await connection.connectDB();
       let dealer,location;
       let rowCount=req.rowCount;
@@ -318,7 +319,7 @@ module.exports = {
       brand = res4[0].brand;
       fileTypeId=req.fileTypeId;
 
-      if (brandId == 33 && fileType == "PO") {
+      if (brandId == 33 && req.fileType == "PO") {
        
         // console.log(data)
         if(dealer && location ){
@@ -326,10 +327,10 @@ module.exports = {
           // console.log(result.headers);
           rowCount=rowCount-1
           data = result.data;
-         insertResponse=  await kiaBulkData.bulkInsertMRNData(data,pool,dealer,location)
+         insertResponse=  await kiaBulkData.bulkInsertPOData(data,pool,dealer,location)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
-            return insertResponse
+            insertResponse=true;
           }
           else{
             insertResponse=false;
@@ -341,10 +342,10 @@ module.exports = {
           // console.log(result.headers);
           rowCount=rowCount-1
           data = result.data;
-        insertResponse=  await kiaBulkData.bulkInsertMRNData(data,pool,null,null)
+        insertResponse=  await kiaBulkData.bulkInsertPOData(data,pool,null,null)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+         insertResponse=true
         }
         else{
           insertResponse=false;
@@ -353,22 +354,22 @@ module.exports = {
         }
       }
 
-      if(brandId==33 && fileType=="MRN"){
+      if(brandId==33 && req.fileType=="MRN"){
         if(dealer && location){
-        insertResponse=  await kiaBulkData.bulkInsertData(pool,dealer,location)
+        insertResponse=  await kiaBulkData.bulkInsertMRNData(excelData.data,pool,dealer,location)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+         insertResponse=true;
        }
        else{
         insertResponse=false;
        }
         }
         else{
-         insertResponse= await kiaBulkData.bulkInsertData(pool,null,null)
+         insertResponse= await kiaBulkData.bulkInsertMRNData(excelData.data,pool,null,null)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+         insertResponse=true;
        }
        else{
         insertResponse=false;
@@ -376,12 +377,12 @@ module.exports = {
         }
       }
 
-      if(brandId==22 && fileType=='PO'){
+      if(brandId==22 ){
         if(dealer && location){
-          insertResponse= await honda2WBulkData.bulkInsertData(pool,dealer,location);
+          insertResponse= await honda2WBulkData.bulkInsertData(excelData.data,pool,dealer,location);
           if(insertResponse){
             console.log("insertRes",insertResponse)
-          return insertResponse
+           insertResponse=true;
          }
          else{
           insertResponse=false;
@@ -400,87 +401,93 @@ module.exports = {
         }
       }
 
-      if(brandId==12 &&fileType=='MRN'){
-        if(dealer && location){
-         insertResponse= await renaultBulkData.bulkInsertMRNData(pool,dealer,location)
-         if(insertResponse){
-          // console.log("insertRes",insertResponse)
-        return insertResponse
-        }
-        else{
-          insertResponse=false;
-        }
-        }
-        else{
-         insertResponse= await renaultBulkData.bulkInsertMRNData(pool,null,null)
-         if(insertResponse){
-          // console.log("insertRes",insertResponse)
-        return insertResponse
-       }
-       else{
-        insertResponse=false;
-       }
-        }
-      }
-
-      if(brandId==12 && fileType=="PO"){
-        if(dealer && location){
-        insertResponse=  await renaultBulkData.bulkInsertPOData(data,pool,dealer,location)
-        if(insertResponse){
-          console.log("insertRes",insertResponse)
-        return insertResponse
-        }
-        else{
-          insertResponse=false;
-        }
-        }
-        else{
-         insertResponse= await renaultBulkData.bulkInsertPOData(data,pool,null,null)
-         if(insertResponse){
-          // console.log("insertRes",insertResponse)
-        return insertResponse
+      if(brandId===12  ){
+        // console.log(req.fileType);
+        if(req.fileType==='MRN'){
+          if(dealer && location){
+           insertResponse= await renaultBulkData.bulkInsertMRNData(excelData.data,pool,dealer,location)
+           if(insertResponse){
+            // console.log("insertRes",insertResponse)
+           insertResponse=true;
           }
           else{
             insertResponse=false;
           }
+          }
+          else{
+           insertResponse= await renaultBulkData.bulkInsertMRNData(excelData.data,pool,null,null)
+           if(insertResponse){
+            // console.log("insertRes",insertResponse)
+           insertResponse=true;
+         }
+         else{
+          insertResponse=false;
+         }
+          }
+
         }
+        if(req.fileType==='PO'){
+          if(dealer && location){
+            insertResponse=  await renaultBulkData.bulkInsertPOData(excelData.data,pool,dealer,location)
+            if(insertResponse){
+              console.log("insertRes",insertResponse)
+            insertResponse=true;
+            }
+            else{
+              insertResponse=false;
+            }
+            }
+            else{
+             insertResponse= await renaultBulkData.bulkInsertPOData(excelData.data,pool,null,null)
+             if(insertResponse){
+              // console.log("insertRes",insertResponse)
+            insertResponse=true;
+              }
+              else{
+                insertResponse=false;
+              }
+            }
+        }
+        // console.log("mrn ")
       }
 
-      if(brandId==11 && fileType=='PO'){
-        
+
+      if(brandId==11 && req.fileType=='PO'){
+        // console.log("jdsfsdjf hyundai po ")
         if(dealer && location){
           const result = await readExcelFile1(dealer,location,req.filePath);
-        console.log(result.headers);
+        // console.log(result.headers);
         rowCount=rowCount-1
-        data = result.data;
-         insertResponse=  await hyundaiBulkData.bulkInsertData(data,pool,dealer,location)
+        data1 = result.data;
+         insertResponse=  await hyundaiBulkData.bulkInsertPOData(data1,pool,dealer,location)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
-            return insertResponse
+            insertResponse=true;
           }
           else{
             insertResponse=false;
           }
         }
         else{
-          console.log("hyundai po")
+          // console.log("hyundai po")
           const result = await readExcelFile1(null,null,req.filePath);
-         console.log(result.headers);
+        //  console.log(result.headers);
         rowCount=rowCount-1
         data = result.data;
-        insertResponse=  await hyundaiBulkData.bulkInsertData(data,pool,null,null)
+        insertResponse=  await hyundaiBulkData.bulkInsertPOData(data,pool,null,null)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+         insertResponse=true;
        }
        else{
         insertResponse=false;
        }
         }
       }
-      if(brandId==11 && fileType=='MRN'){
+      if(brandId==11 && req.fileType=='MRN'){
+        console.log("jdsfh excuted mrn")
         if(dealer && location){
-         insertResponse= await hyundaiBulkData.bulkPOInsertData(pool,dealer,location)
+         insertResponse= await hyundaiBulkData.bulkInsertData(excelData.data,pool,dealer,location)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
             return insertResponse
@@ -489,7 +496,7 @@ module.exports = {
             insertResponse=false;
           }
         }else{
-          insertResponse=await hyundaiBulkData.bulkPOInsertData(pool,null,null)
+          insertResponse=await hyundaiBulkData.bulkInsertData(excelData.data,pool,null,null)
           if(insertResponse){
             // console.log("insertRes",insertResponse)
           return insertResponse
@@ -500,45 +507,45 @@ module.exports = {
         }
       }
 
-      if(brandId==32 && fileType=='PO'){
+      if(brandId==32 && req.fileType=='PO'){
         pool=await connection.connectDB();
         if(dealer && location){
-        insertResponse=  await JcbBulkData.bulkInsertData(pool,dealer,location)
+        insertResponse=  await JcbBulkData.bulkInsertData(excelData.data,pool,dealer,location)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+         insertResponse=true;
        }
        else{
         insertResponse=false;
        }
         }
         else{
-         insertResponse= await JcbBulkData.bulkInsertData(pool,null,null)
+         insertResponse= await JcbBulkData.bulkInsertData(excelData.data,pool,null,null)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+        insertResponse=true;
        }
        else{
         insertResponse=false;
        }
         }
       }
-      if(brandId==32 && fileType=='MRN'){
+      if(brandId==32 && req.fileType=='MRN'){
         if(dealer && location){
-        insertResponse=  await JcbBulkData.bulkMRNInsertData(pool,dealer,location)
+        insertResponse=  await JcbBulkData.bulkMRNInsertData(excelData.data,pool,dealer,location)
           if(insertResponse){
             // console.log("insertRes",insertResponse)
-          return insertResponse
+          insertResponse=true;
          }
          else{
           insertResponse=false;
          }
         }
         else{
-         insertResponse= await JcbBulkData.bulkMRNInsertData(pool,null,null)
+         insertResponse= await JcbBulkData.bulkMRNInsertData(excelData.data,pool,null,null)
           if(insertResponse){
             // console.log("insertRes",insertResponse)
-          return insertResponse
+           insertResponse=true;
          }
          else{
           insertResponse=false;
@@ -546,14 +553,14 @@ module.exports = {
         }
       }
 
-      if(brandId==9 && fileType=='PO'){
+      if(brandId==9 && req.fileType=='PO'){
 
         if(dealer && location ){
           // console.log("headers ",headers)
-         insertResponse= await mahindraBulkData.bulkInsertData(pool,dealer,location,res,headers)
+         insertResponse= await mahindraBulkData.bulkInsertData(excelData.data,pool,dealer,location,res,excelData.headers)
          console.log("insertRes",insertResponse)
          if(insertResponse){
-          return insertResponse;
+           insertResponse=true;
          }
          else{
           insertResponse=false;
@@ -561,11 +568,11 @@ module.exports = {
         }
         else{
           // console.log("headers ",headers)
-         insertResponse= await mahindraBulkData.bulkInsertData(pool,null,null,res,headers)
+         insertResponse= await mahindraBulkData.bulkInsertData(excelData.data,pool,null,null,res,excelData.headers)
         //  console.log("insertRes",insertResponse)
          if(insertResponse){
-            console.log("insertRes",insertResponse)
-          return insertResponse
+            // console.log("insertRes",insertResponse)
+           insertResponse=true;
          }
          else{
           insertResponse=false;
@@ -573,24 +580,24 @@ module.exports = {
         }
       }
 
-      if(brandId==9 && fileType=='MRN'){
-
+      if(brandId==9 && req.fileType=='MRN'){
+        rowCount=rowCount-1;
         if(dealer && location){
 
-          insertResponse=await mahindraBulkData.bulkMRNInsertData(pool,dealer,location)
+          insertResponse=await mahindraBulkData.bulkMRNInsertData(excelData.data,pool,dealer,location)
           if(insertResponse){
             console.log("insertRes",insertResponse)
-          return insertResponse
+           insertResponse=true;
          }
          else{
           insertResponse=false;
          }
         } 
       else{
-        insertResponse=await mahindraBulkData.bulkMRNInsertData(pool,null,null)
+        insertResponse=await mahindraBulkData.bulkMRNInsertData(excelData.data,pool,null,null)
       if(insertResponse){
         console.log("insertRes",insertResponse)
-      return insertResponse
+       insertResponse=true;
      }
      else{
       insertResponse=false;
@@ -601,6 +608,7 @@ module.exports = {
     if (brandId === 20) {
       // pool=await connection.connectDB();
       let isNullFound=false;
+      data=excelData.data
       for(let item of data){
           const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
       const Location = location || item["location"];
@@ -672,45 +680,45 @@ module.exports = {
     }
     }
 
-    if(brandId==17 && fileType=='PO'){
+    if(brandId==17 ){
       console.log("dealer ",dealer ,"loc ",location)
       if(dealer && location){
-        insertResponse= await tataCVBulkData.bulkPOInsertData(pool,dealer,location)
+        insertResponse= await tataCVBulkData.bulkPOInsertData(excelData.data,pool,dealer,location)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+         insertResponse=true;
        }
        else{
         insertResponse=false;
        }
       }
       else{
-        insertResponse= await tataCVBulkData.bulkPOInsertData(pool,null,null)
+        insertResponse= await tataCVBulkData.bulkPOInsertData(excelData.data,pool,null,null)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+        insertResponse=true;
        }
        else{
         insertResponse=false;
        }
       }
     }
-    if(brandId==28 && fileType=='PO'){
+    if(brandId==28 ){
       if(dealer && location){
-       insertResponse= await tataPCBulkData.bulkPOInsertData(pool,dealer,location);
+       insertResponse= await tataPCBulkData.bulkPOInsertData(excelData.data,pool,dealer,location);
         if(insertResponse){
           // console.log("insertRes",insertResponse)
-        return insertResponse
+         insertResponse=true;
        }
        else{
         insertResponse=false;
        }
       }
       else{
-       insertResponse=  await tataPCBulkData.bulkPOInsertData(pool,null,null);
+       insertResponse=  await tataPCBulkData.bulkPOInsertData(excelData.data,pool,null,null);
        if(insertResponse){
         // console.log("insertRes",insertResponse)
-      return insertResponse
+     insertResponse=true;
      }
      else{
       insertResponse=false;
@@ -724,17 +732,20 @@ module.exports = {
     let publicIp = "Fetching public IP...";
     try {
       publicIp = await getPublicIp();
-      console.log("public ip ", publicIp);
+      // console.log("public ip ", publicIp);
     } catch (error) {
       console.log(error, "error in lead time");
       publicIp = "Error fetching public IP";
     }
-    console.log("rowCount ",rowCount)
-    // if(insertResponse.status==200){
+    // console.log("rowCount ",rowCount)
+     if(!insertResponse){
       await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,fileTypeId);
      console.log("logs inserted successfully------") 
 
-   // }
+    }
+    else{
+      return insertResponse
+    }
   
   } catch (error) {
       console.log("error in service ", error);
@@ -864,30 +875,49 @@ module.exports = {
     // console.log("req ",req.locationMaster)
     return new Promise((resolve, reject) => {
       try {
-        const mappedData = req.body.data.map((data) => {
-          return {
-            File_name: data.file_name.trim(),
-            file_type: data.fileType,
-            sequence: data.sequence,
-            brand: data.brandName,
-            column_name: data.columnName,
-          };
-        });
-        //console.log("mapped data ",mappedData)
+       
 
+        brandColumns=req.body.data.columns;
+        locationInfo=req.locationMaster;
         const wb = xlsx.utils.book_new();
-        const sheet1 = xlsx.utils.json_to_sheet(mappedData);
-        const sheet2 = xlsx.utils.json_to_sheet(req.locationMaster);
+        if(brandColumns.PO && brandColumns.MRN){
+          combinedDataPo= locationInfo.map((item)=>{
+            return{...item,
+            ...brandColumns.PO.reduce((acc, key) => {
+              acc[key] = null;  // Set each key's value to null
+              return acc;
+            }, {})
+          }})
+        
+          combinedDataMRN= locationInfo.map((item)=>{
+            return{...item,
+            ...brandColumns.MRN.reduce((acc, key) => {
+              acc[key] = null;  // Set each key's value to null
+              return acc;
+            }, {})
+          }})
 
-        // Append sheets to workbook
+          const sheet1 = xlsx.utils.json_to_sheet(combinedDataPo);
+          const sheet2 = xlsx.utils.json_to_sheet(combinedDataMRN);
+        xlsx.utils.book_append_sheet(wb, sheet1, "PO Download Format");
 
-        xlsx.utils.book_append_sheet(wb, sheet1, "Mapped Data");
+       xlsx.utils.book_append_sheet(wb, sheet2, "MRN Download Format");
+        }
+        else{
+          combinedDataPo= locationInfo.map((item)=>{
+            return{...item,
+            ...brandColumns.PO.reduce((acc, key) => {
+              acc[key] = null;  // Set each key's value to null
+              return acc;
+            }, {})
+          }})
 
-        xlsx.utils.book_append_sheet(wb, sheet2, "Location Master");
-        // Convert workbook to buffer and resolve
-        // const buffer = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+          const sheet1 = xlsx.utils.json_to_sheet(combinedDataPo);
+          xlsx.utils.book_append_sheet(wb, sheet1, "PO Download Format");
+        }
+      
         const buffer = xlsx.write(wb, { bookType: "xlsx", type: "buffer" });
-        console.log("Buffer created with size:", buffer.length);
+        // console.log("Buffer created with size:", buffer.length);
         resolve(buffer);
       } catch (error) {
         console.log("error ", error.message);
@@ -1185,25 +1215,48 @@ async function readExcelFile1(dealer,location,filePath) {
 
     const headerRow = data[0];
     let subHeaders;
-    //  console.log("headerRow ",headerRow)
+     console.log("headerRow ",headerRow)
     if(dealer && location){
-      subHeaders = [
-    
-        "",
-        "",
-        "ORDER",
-        "CURRENT",
-        "",
-        "",
-        "ORDER",
-        "CURRENT",
-        "",
-        "",
-        "",
-        "",
-      ];
+      if(headerRow.includes('dealer') && headerRow.includes('location')){
+        console.log("excuting")
+        subHeaders = [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "ORDER",
+          "CURRENT",
+          "",
+          "",
+          "ORDER",
+          "CURRENT",
+          "",
+          "",
+          "",
+          "",
+        ];
+      }else{
+        subHeaders = [
+      
+          "",
+          "",
+          "ORDER",
+          "CURRENT",
+          "",
+          "",
+          "ORDER",
+          "CURRENT",
+          "",
+          "",
+          "",
+          "",
+        ];
+
+      }
     }
     else{
+     
       subHeaders = [
         "",
         "",

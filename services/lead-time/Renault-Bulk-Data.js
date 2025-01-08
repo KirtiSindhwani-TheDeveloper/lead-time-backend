@@ -2,14 +2,14 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require('moment');
 module.exports={
-    bulkInsertMRNData: async function(pool, dealer, location) {
+    bulkInsertMRNData: async function(data,pool, dealer, location) {
         // console.log(data[0]);
         let isNullFound=false;
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
             if(!Dealer || !Location || !item["part no"] || item["part no"]==0){
-
+                    // console.log("mrn ",item)
                     isNullFound=true;
                     return isNullFound;    
             }
@@ -37,8 +37,7 @@ module.exports={
             Dealer, // Dealer
             Location // Location
         ];})
-        
-        // console.log(values)
+    
     
         const table = new sql.Table('Renault_GRN_file_lead_time_latest_data');
     table.create = false;
@@ -54,7 +53,7 @@ module.exports={
     table.columns.add('Location', sql.VarChar(100), { nullable: true }); // Location
 
     // Add rows to the table
-    console.log("values ",values)
+    // console.log("values ",values)
     values.forEach((row) => {
         table.rows.add(
             row[0], // Transaction Date
@@ -88,7 +87,7 @@ module.exports={
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
             if(!Dealer || !Location || !item["order part number"] || item["order part number"]==0){
-
+                // console.log(item["order part number"])
                     isNullFound=true;
                     return isNullFound;    
             }

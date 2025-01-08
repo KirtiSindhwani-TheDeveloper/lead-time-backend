@@ -2,7 +2,7 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-    bulkInsertData: async function(pool, dealer, location, res,headers) {
+    bulkInsertData: async function(data,pool, dealer, location, res,headers) {
         try{
             // let isColumnMatch=false;
             // const expectedColumns = [
@@ -112,9 +112,10 @@ module.exports = {
     },
     
 
-    bulkMRNInsertData: async function(pool, dealer, location,res,headers) {
+    bulkMRNInsertData: async function(data,pool, dealer, location,res,headers) {
         console.log('----------------------it is executing');
         let isNullFound=false;
+        data=data.slice(1);
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
@@ -127,7 +128,7 @@ module.exports = {
         }
         if(!isNullFound){
 
-        const values = data.slice(1).map(item => 
+        const values = data.map(item => 
         {
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
             const Location = location || item["location"]; 
@@ -232,8 +233,8 @@ function excelSerialToDate(serialNumber) {
   
   function convertExcelSerialToIST(serialNumber,item) {
     if (!serialNumber || isNaN(serialNumber)) {
-        console.log(item)
-      console.error("Invalid serial number:", serialNumber);
+    //     console.log(item)
+    //   console.error("Invalid serial number:", serialNumber);
       return null;
     }
   

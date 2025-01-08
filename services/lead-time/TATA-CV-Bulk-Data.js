@@ -2,7 +2,7 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-    bulkPOInsertData: async function(pool, dealer, location) {
+    bulkPOInsertData: async function(data,pool, dealer, location) {
         console.log('----------------------it is executing');
         let isNullFound=false;
         for(let item of data){
