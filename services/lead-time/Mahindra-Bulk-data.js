@@ -115,12 +115,20 @@ module.exports = {
     bulkMRNInsertData: async function(data,pool, dealer, location,res,headers) {
         console.log('----------------------it is executing');
         let isNullFound=false;
+        // console.log(data[2])
         data=data.slice(1);
+        let Dealer,Location
         for(let item of data){
-            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
-        const Location = location || item["location"];
+            if(dealer==null ||dealer ==undefined && location==null || location==undefined){
+                Dealer=item["dealer"]
+                Location=item["location"]
+            }
+            else{
+                Dealer=dealer;
+                Location=location;
+            }
             if(!Dealer || !Location || !item["part number"] || item["part number"]==0){
-                console.log(item)
+                console.log(item,Dealer,Location)
                     isNullFound=true;
                     
                     return isNullFound;    

@@ -163,6 +163,16 @@ res.setHeader('Content-Type', 'application/json');
    
   },
 
+  deleteUploadedData:async function(req,res){
+    try{
+      await leadTimeService.deleteUploadedData(req.body);
+      res.status(200).send({message:'Delete successfully'})
+    }
+    catch(error){
+      res.status(201).send({message:error.message})
+    }
+  },
+
   readSubHeader:async function (req,res) {
 
     try{

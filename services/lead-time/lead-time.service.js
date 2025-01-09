@@ -390,7 +390,7 @@ module.exports = {
         }
         else{
           console.log(dealer,location)
-         insertResponse= await honda2WBulkData.bulkInsertData(pool,null,null);
+         insertResponse= await honda2WBulkData.bulkInsertData(excelData.data,pool,null,null);
          if(insertResponse){
           console.log("insertRes",insertResponse)
           return insertResponse
@@ -581,9 +581,9 @@ module.exports = {
       }
 
       if(brandId==9 && req.fileType=='MRN'){
-        rowCount=rowCount-1;
+        rowCount=rowCount-2;
         if(dealer && location){
-
+          // console.log(excelData.data)
           insertResponse=await mahindraBulkData.bulkMRNInsertData(excelData.data,pool,dealer,location)
           if(insertResponse){
             console.log("insertRes",insertResponse)
@@ -594,6 +594,7 @@ module.exports = {
          }
         } 
       else{
+        //  console.log(excelData.data)
         insertResponse=await mahindraBulkData.bulkMRNInsertData(excelData.data,pool,null,null)
       if(insertResponse){
         console.log("insertRes",insertResponse)
@@ -739,7 +740,7 @@ module.exports = {
     }
     // console.log("rowCount ",rowCount)
      if(!insertResponse){
-      await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,fileTypeId);
+      await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId);
      console.log("logs inserted successfully------") 
 
     }
@@ -751,6 +752,84 @@ module.exports = {
       console.log("error in service ", error);
       fileMissMatch=true;
       return fileMissMatch
+    }
+  },
+
+  deleteUploadedData:async function(req,res){
+    try{
+      brandId=req.brand_id;
+      userId=req.userId;
+      tableNamePO='';
+      tableNameMRN='';
+      switch(brandId) {
+        case 9: {
+            tableNamePO = 'Mahindra_PO_file_Lead_Time_Latest_Data';
+            tableNameMRN = 'Mahindra_receipt_file_lead_Time_Latest_data';
+            break;
+        }
+        case 12: {
+            tableNamePO = 'Renault_POSBO_file_lead_time_latest_data';
+            tableNameMRN = 'Renault_GRN_file_lead_time_Latest_Data';
+            break;
+        }
+        case 11: {
+            tableNamePO = 'Hyundai_bo_file_lead_time_latest_data';
+            tableNameMRN = 'Hyundai_Pur_File_lead_time_latest_Data';
+            break;
+        }
+        case 32: {
+            tableNamePO = 'JCB_PO_file_lead_time_latest_data';
+            tableNameMRN = 'JCB_mrn_file_lead_time_latest_data';
+            break;
+        }
+        case 33: {
+            tableNamePO = 'kia_bo_file_lead_time_latest_data';
+            tableNameMRN = 'kia_Pur_File_lead_time_latest_Data';
+            break;
+        }
+        default: {
+            // Optionally, handle cases where brandId doesn't match any of the above.
+            
+            return;
+        }
+
+        
+    }
+    pool=await connection.connectDB();
+      let query1=`TRUNCATE TABLE ${tableNamePO}`
+      let query2=`TRUNCATE TABLE ${tableNameMRN}`
+       pool.request().query(query1);
+       pool.request().query(query2);
+
+      query3= `SELECT TOP 1 *
+FROM audit_log
+WHERE brandID = @brandId AND userID = @userId
+ORDER BY dateTime DESC;
+`
+
+     
+        const results=await pool.request().input('brandId',brandId)
+        .input('userId',userId).query(query3);
+
+      //   if (results.length === 0) {
+      //     console.log('No entry found for this brandId');
+      //     return;
+      // }
+        const lastInsertedId = results[0].id;
+        console.log(`Last inserted entry ID: ${lastInsertedId}`);
+
+        // Step 2: Delete the row with the retrieved id
+        const deleteQuery = `
+            DELETE FROM audit_log
+            WHERE id = @lastInsertedId;
+        `;
+  
+      await pool.request().input('lastInsertedId',lastInsertedId).query(deleteQuery)
+      
+     
+    }
+    catch(error){
+      console.log("error in delete uploaded data ",error.message)
     }
   },
 
