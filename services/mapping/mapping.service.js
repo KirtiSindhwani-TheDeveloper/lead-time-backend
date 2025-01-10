@@ -64,7 +64,7 @@ module.exports={
       return result;
     } catch (error) {
       console.error("Error processing Excel file:", error);
-      throw new Error("Failed to read the Excel file");
+      res.status(201).json({message:'Error in processing the file'})
     }
   }
 ,

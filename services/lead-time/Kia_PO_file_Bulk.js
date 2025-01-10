@@ -3,6 +3,7 @@ const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
   bulkInsertMRNData: async function(data,pool,dealer,location) {
+    console.log("kia mrn excuting")
     let isNullFound=false;
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -65,11 +66,15 @@ module.exports = {
 
   bulkInsertPOData:async function(data,pool,dealer,location){
     // console.log("item",data[0])
+    console.log("kia po excuting")
     let isNullFound=false;
     data=data.slice(1);
         for(let item of data){
+
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
+        // console.log("dealer ,location ",dealer,location);
+        
             if(!Dealer || !Location || !item["part no current"] || !item["part no order"] || item["part no current"]==0 || item["part no order"]==0
             ){
 
@@ -78,7 +83,7 @@ module.exports = {
             }
         }
         if(!isNullFound){
-    const values = data.slice(1).map(item => 
+    const values = data.map(item => 
     {
       const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
       const Location = location || item["location"]; 

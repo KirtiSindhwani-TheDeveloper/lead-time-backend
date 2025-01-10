@@ -2,6 +2,7 @@ const connection = require("../../connection");
 const sql = require("mssql2");
 const sql2=require("mssql")
 const http = require("http");
+const fs=require('fs')
 const { getLocalIp, getPublicIp, getClientIp } = require("../getIP");
 const { log } = require("console");
 const xlsx = require("xlsx");
@@ -294,22 +295,22 @@ module.exports = {
       // console.log("updload data ",brandId,fileType,rowCount)
       if (req.dealer_id) {
         dealerId = req.dealer_id;
-        query2 = `select dealer_name from Dealer_Master where dealer_id=@dealerId`;
+        query2 = `select vcName from z_scope.dbo.Dealer_Master where bigid=@dealerId`;
         res1 = await pool.request().input("dealerId", dealerId).query(query2);
-        dealer = res1[0].dealer_name;
+        dealer = res1[0].vcName;
       }
       if (req.location) {
         locationId = req.location;
-        query3 = `select location_name from Location_Master where location_id=@locationId`;
+        query3 = `select Location from z_scope.dbo.locationInfo where locationID=@locationId`;
 
         res3 = await pool
           .request()
           .input("locationId", locationId)
           .query(query3);
-        location = res3[0].location_name;
+        location = res3[0].Location;
       }
 
-      query1 = `select brand from Brand_MASTER  where brand_id=@brandId`;
+      query1 = `select vcbrand from z_scope.dbo.Brand_MASTER  where bigid=@brandId`;
       res4 = await pool
         .request()
         .input("brandId", sql.TinyInt, brandId)
@@ -325,7 +326,7 @@ module.exports = {
         if(dealer && location ){
           const result = await readExcelFile1(dealer,location,req.filePath);
           // console.log(result.headers);
-          rowCount=rowCount-1
+          rowCount=rowCount-2
           data = result.data;
          insertResponse=  await kiaBulkData.bulkInsertPOData(data,pool,dealer,location)
          if(insertResponse){
@@ -340,7 +341,7 @@ module.exports = {
         else{
           const result = await readExcelFile1(null,null,req.filePath);
           // console.log(result.headers);
-          rowCount=rowCount-1
+          rowCount=rowCount-2;
           data = result.data;
         insertResponse=  await kiaBulkData.bulkInsertPOData(data,pool,null,null)
         if(insertResponse){
@@ -457,7 +458,7 @@ module.exports = {
         if(dealer && location){
           const result = await readExcelFile1(dealer,location,req.filePath);
         // console.log(result.headers);
-        rowCount=rowCount-1
+        rowCount=rowCount-2;
         data1 = result.data;
          insertResponse=  await hyundaiBulkData.bulkInsertPOData(data1,pool,dealer,location)
          if(insertResponse){
@@ -472,7 +473,7 @@ module.exports = {
           // console.log("hyundai po")
           const result = await readExcelFile1(null,null,req.filePath);
         //  console.log(result.headers);
-        rowCount=rowCount-1
+        rowCount=rowCount-2
         data = result.data;
         insertResponse=  await hyundaiBulkData.bulkInsertPOData(data,pool,null,null)
         if(insertResponse){
@@ -738,13 +739,21 @@ module.exports = {
       console.log(error, "error in lead time");
       publicIp = "Error fetching public IP";
     }
+    fs.unlink(req.filePath, (err) => {
+      if (err) {
+        console.error('Error deleting the file:', err);
+        return;
+      }
+      console.log('File deleted successfully');
+    });
     // console.log("rowCount ",rowCount)
      if(!insertResponse){
-      await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId);
-     console.log("logs inserted successfully------") 
+      await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId,'success');
+     //console.log("logs inserted successfully------") 
 
     }
     else{
+      await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId,'failure');
       return insertResponse
     }
   
@@ -759,8 +768,11 @@ module.exports = {
     try{
       brandId=req.brand_id;
       userId=req.userId;
+      dealerId=req.dealer_id;
+      locationId=req.location;
       tableNamePO='';
       tableNameMRN='';
+      fileTypeId=req.fileTypeId
       switch(brandId) {
         case 9: {
             tableNamePO = 'Mahindra_PO_file_Lead_Time_Latest_Data';
@@ -801,30 +813,83 @@ module.exports = {
        pool.request().query(query1);
        pool.request().query(query2);
 
-      query3= `SELECT TOP 1 *
-FROM audit_log
-WHERE brandID = @brandId AND userID = @userId
-ORDER BY dateTime DESC;
-`
-
+       let query3 = `
+       SELECT TOP 1 *
+       FROM audit_log
+       WHERE brandID = @brandId 
+         AND userID = @userId 
+         AND fileTypeID = @fileTypeId 
+         AND error_log = 'success'`;
      
-        const results=await pool.request().input('brandId',brandId)
-        .input('userId',userId).query(query3);
+     if (dealerId) {
+       query3 += ` AND dealerID = @dealerId`;
+     }
+     
+     if (locationId) {
+       query3 += ` AND locationID = @locationId`;
+     }
+     
+     // Adding the ORDER BY clause at the end
+     query3 += ` ORDER BY dateTime DESC`;
+     
+     console.log(fileTypeId);
+     
+     const requests = await pool.request()
+       .input('brandId', brandId)
+       .input('fileTypeId', fileTypeId)
+       .input('userId', userId);
+     
+     if (dealerId) {
+       results.input('dealerId', dealerId);
+     }
+     
+     if (locationId) {
+       results.input('locationId', locationId);
+     }
+     
+     const results = await requests.query(query3);
+     
+
+        if(results.length>0){
+          const lastInsertedId = results[0].id;
+          const deleteQuery = `
+          update audit_log set error_log='failure'
+          WHERE id = @lastInsertedId
+          `;
+      
+          await pool.request().input('lastInsertedId', lastInsertedId)
+          .query(deleteQuery);
+        }
+   // }
+    // console.log(`Last inserted entry ID: ${lastInsertedId}`);
 
       //   if (results.length === 0) {
       //     console.log('No entry found for this brandId');
       //     return;
       // }
-        const lastInsertedId = results[0].id;
-        console.log(`Last inserted entry ID: ${lastInsertedId}`);
-
+      // console.log(results[0])
+    
+       
+        // const lastInsertedTimestamp = results[0].dateTime; // The timestamp you retrieved from the database (e.g., 1736491221000)
+        // const currentTimestamp = new Date().getTime(); // Get the current timestamp in milliseconds
+        
+        // Create Date objects from both timestamps
+        // const lastInsertedDate = new Date(lastInsertedTimestamp);
+        // const currentDate = new Date(currentTimestamp);
+        
+        // // Normalize both dates to the same precision (to minute level)
+        // lastInsertedDate.setSeconds(0); // Set seconds to 0
+        // lastInsertedDate.setMilliseconds(0); // Set milliseconds to 0
+        
+        // currentDate.setSeconds(0); // Set seconds to 0
+        // currentDate.setMilliseconds(0); // Set milliseconds to 0
+        
+        // console.log(lastInsertedDate.getTime(),currentDate.getTime())
+        // Now compare the two timestamps (ignoring seconds and milliseconds)
+        // if (lastInsertedDate.getTime() === currentDate.getTime()) {
+           
         // Step 2: Delete the row with the retrieved id
-        const deleteQuery = `
-            DELETE FROM audit_log
-            WHERE id = @lastInsertedId;
-        `;
-  
-      await pool.request().input('lastInsertedId',lastInsertedId).query(deleteQuery)
+       
       
      
     }
@@ -1033,9 +1098,9 @@ ORDER BY dateTime DESC;
       let userId=req.userId
       console.log("dealer ",dealerId,locationId)
       
-      let query = `SELECT userID, brandID, dealerID, locationID, dateTime, noOfRecords 
+      let query = `SELECT userID, brandID, dealerID, locationID, dateTime, noOfRecords ,fileTypeID
                    FROM Audit_Log 
-                   WHERE brandID = @brandId and operation='upload' and userID=@userId`;
+                   WHERE brandID = @brandId and operation='upload' and userID=@userId and error_log='success'`;
       
       if (dealerId !== null && dealerId !== undefined) {
           query += ` AND dealerID = @dealerId`;
@@ -1248,14 +1313,14 @@ function convertExcelSerialToIST(serialNumber) {
 
 
 
-async function insertInAuditLogs(pool,userId,dealer_id,location,brand_id,publicIp,rowCount,fileTypeId){
+async function insertInAuditLogs(pool,userId,dealer_id,location,brand_id,publicIp,rowCount,fileTypeId,error_status){
   console.log(rowCount)
   pool=await connection.connectDB();
   const utcDate = new Date();
   const indiaOffset = 5.5 * 60; // IST is UTC+5:30
   const indiaTime = new Date(utcDate.getTime() + indiaOffset * 60000);
-  let query2 = `Insert into Audit_log(userID,dealerID,brandID,locationID,dateTime,operation,IP,noOfRecords,fileTypeID)
-   values(@userId,@dealer_id, @brand_id, @location,@indiaTime,@operation,@publicIp,@rowCount,@fileTypeId)`;
+  let query2 = `Insert into Audit_log(userID,dealerID,brandID,locationID,dateTime,operation,IP,noOfRecords,fileTypeID,error_log)
+   values(@userId,@dealer_id, @brand_id, @location,@indiaTime,@operation,@publicIp,@rowCount,@fileTypeId,@error_status)`;
 
   const result1 = await pool
     .request()
@@ -1268,6 +1333,7 @@ async function insertInAuditLogs(pool,userId,dealer_id,location,brand_id,publicI
     .input("publicIp", publicIp)
     .input("location", location)
     .input("indiaTime", sql.DateTime, indiaTime)
+  .input('error_status',error_status)
     .query(query2);
 
     console.log("logs inserted succesfully----")
@@ -1295,7 +1361,7 @@ async function readExcelFile1(dealer,location,filePath) {
     const headerRow = data[0];
     let subHeaders;
      console.log("headerRow ",headerRow)
-    if(dealer && location){
+    if(dealer!=null && location!=null){
       if(headerRow.includes('dealer') && headerRow.includes('location')){
         console.log("excuting")
         subHeaders = [
