@@ -81,7 +81,7 @@ module.exports = {
   // inner join z_scope.dbo.Dealer_Master c on a.dealer_id=c.dealer_id 
   // where a.brand_id=@brandId
   //   `;
-    const query=` select b.vcbrand,c.vcName,a.location
+    const query=` select b.vcbrand as Brand,c.vcName as Dealer,a.location as Location
   from z_scope.dbo.locationInfo a 
   inner join z_scope.dbo.Brand_Master b on a.brandID=b.bigid
   inner join z_scope.dbo.Dealer_Master c on a.dealerID=c.bigid

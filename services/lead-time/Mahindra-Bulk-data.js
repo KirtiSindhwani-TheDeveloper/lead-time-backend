@@ -34,7 +34,7 @@ module.exports = {
                 if(!Dealer || !Location || !item["part no"] || item["part no"]==0){
                         isNullFound=true;
                         // console.log(Dealer,Location)
-                        console.log(item);
+                        // console.log(item);
                         return isNullFound;
                         
                     
@@ -117,16 +117,10 @@ module.exports = {
         let isNullFound=false;
         // console.log(data[2])
         data=data.slice(1);
-        let Dealer,Location
         for(let item of data){
-            if(dealer==null ||dealer ==undefined && location==null || location==undefined){
-                Dealer=item["dealer"]
-                Location=item["location"]
-            }
-            else{
-                Dealer=dealer;
-                Location=location;
-            }
+            const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
+            const Location = location || item["location"];
+            
             if(!Dealer || !Location || !item["part number"] || item["part number"]==0){
                 console.log(item,Dealer,Location)
                     isNullFound=true;

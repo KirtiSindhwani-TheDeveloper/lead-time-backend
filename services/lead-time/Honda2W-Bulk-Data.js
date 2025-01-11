@@ -2,7 +2,7 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-  bulkInsertData: async function(data,pool,dealer,location) {
+  bulkInsertData: async function(data,pool,brand,dealer,location,brandId,dealerId,locationId) {
 
     let isNullFound=false;
         for(let item of data){
@@ -32,12 +32,13 @@ module.exports = {
         item['mrn date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['mrn date'])) : null, // MRN Date (Converted to lowercase)
         item['invoice date po'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['invoice date po'])) : null, // Invoice Date PO (Converted to lowercase)
         item['network code'], // Network Code (Converted to lowercase)
-        item['brand'], // Brand (Converted to lowercase)
-        item['dealer'], // Dealer (Converted to lowercase)
-        item['location'], // Location (Converted to lowercase)
-        item['brandid'], // Brand ID (Converted to lowercase)
+       brand,
         Dealer, // Dealer ID (Converted to lowercase)
-        Location // Location ID (Converted to lowercase)
+        Location, // Location ID (Converted to lowercase)
+       brandId,
+       dealerId,
+       locationId
+       
     ]}
   );
     

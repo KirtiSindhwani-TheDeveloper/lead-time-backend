@@ -21,7 +21,7 @@ module.exports = {
                 const Location = location || item["location"]; 
                 return [
                 // Ensure item properties are in lowercase as per your request
-                item["branch name"], // order no
+                Location,
                 item["order no"], // order no
                 item["vendor"], // vendor
                 item["order ref no"], // order ref no
@@ -30,7 +30,7 @@ module.exports = {
                 item["ord date"] !== "0-00-00" && item["ord date"] !== null ? convertExcelSerialToIST(parseFloat(item["ord date"]), item) : null, // ord date
                 item["ordqty"] !== null && !isNaN(parseFloat(item["ordqty"])) ? parseFloat(item["ordqty"]) : null, // ordqty
                 Dealer,
-                Location
+                
             ]
             } 
     );
@@ -95,14 +95,13 @@ module.exports = {
             const Location = location || item["location"]; 
             return [
             // Ensure item properties are in lowercase as per your request
-            item["branch"], // [Branch]
+             Location, // [Branch]
             item["order no"], // [Order No]
             item["jcbinvdt"] !== "0-00-00" && item["jcbinvdt"] !== null ? convertExcelSerialToIST(parseFloat(item["jcbinvdt"])) : null, // [JcbInvDt]
             item["grn date"] !== "0-00-00" && item["grn date"] !== null ? convertExcelSerialToIST(parseFloat(item["grn date"])) : null, // [GRN Date]
             item["part code"], // [Part Code]
             item["qty"] !== null && !isNaN(parseFloat(item["qty"])) ? parseFloat(item["qty"]) : null, // [Qty]
             Dealer, // [Dealer],
-            Location
         ]
         }
     );

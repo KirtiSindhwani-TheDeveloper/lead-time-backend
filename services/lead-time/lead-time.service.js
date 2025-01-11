@@ -10,6 +10,7 @@ const moment = require("moment");
 const XLSX = require("xlsx");
 const kiaBulkData=require('./Kia_PO_file_Bulk');
 const honda2WBulkData=require('./Honda2W-Bulk-Data');
+const heroBulkData=require('./hero-bulk-data')
 const renaultBulkData=require('./Renault-Bulk-Data');
 const hyundaiBulkData=require('./hyundai-bulk-data');
 const jcdBulkData=require('./Jcb-bulk-Data');
@@ -277,6 +278,7 @@ module.exports = {
       }
     });
   },
+
   uploadData: async function (req, excelData,res) {
     try {
       // console.log(req.data)
@@ -293,6 +295,12 @@ module.exports = {
       let rowCount=req.rowCount;
       let insertResponse;
       // console.log("updload data ",brandId,fileType,rowCount)
+
+        brandId = req.brand_id;
+        query23 = `select vcBrand from z_scope.dbo.Brand_Master where bigid=@brandId`;
+        res13 = await pool.request().input("brandId", brandId).query(query23);
+        let brandName = res13[0].vcBrand;
+        // console.log(res13[0].vcBrand,brandName);
       if (req.dealer_id) {
         dealerId = req.dealer_id;
         query2 = `select vcName from z_scope.dbo.Dealer_Master where bigid=@dealerId`;
@@ -380,7 +388,8 @@ module.exports = {
 
       if(brandId==22 ){
         if(dealer && location){
-          insertResponse= await honda2WBulkData.bulkInsertData(excelData.data,pool,dealer,location);
+
+          insertResponse= await honda2WBulkData.bulkInsertData(excelData.data,pool,brandName,dealer,location,req.brand_id,req.dealer_id,req.location);
           if(insertResponse){
             console.log("insertRes",insertResponse)
            insertResponse=true;
@@ -391,10 +400,10 @@ module.exports = {
         }
         else{
           console.log(dealer,location)
-         insertResponse= await honda2WBulkData.bulkInsertData(excelData.data,pool,null,null);
+         insertResponse= await honda2WBulkData.bulkInsertData(excelData.data,pool,brandName,null,null,req.brand_id,req.dealer_id,req.location);
          if(insertResponse){
           console.log("insertRes",insertResponse)
-          return insertResponse
+           insertResponse=true;
           }
           else{
             insertResponse=false;
@@ -486,12 +495,12 @@ module.exports = {
         }
       }
       if(brandId==11 && req.fileType=='MRN'){
-        console.log("jdsfh excuted mrn")
+        // console.log("jdsfh excuted mrn")
         if(dealer && location){
          insertResponse= await hyundaiBulkData.bulkInsertData(excelData.data,pool,dealer,location)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
-            return insertResponse
+             insertResponse=true
           }
           else{
             insertResponse=false;
@@ -500,7 +509,7 @@ module.exports = {
           insertResponse=await hyundaiBulkData.bulkInsertData(excelData.data,pool,null,null)
           if(insertResponse){
             // console.log("insertRes",insertResponse)
-          return insertResponse
+           insertResponse=true;
          }
          else{
           insertResponse=false;
@@ -609,77 +618,27 @@ module.exports = {
       }
     if (brandId === 20) {
       // pool=await connection.connectDB();
-      let isNullFound=false;
-      data=excelData.data
-      for(let item of data){
-          const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
-      const Location = location || item["location"];
-          if(!Dealer || !Location || !item["part number"]){
-
-                  isNullFound=true;
-                  
-                  return isNullFound;    
-          }
+      if(dealer && location){
+        insertResponse= await heroBulkData.bulkInsertData(excelData.data,pool,dealer,location);
+        if(insertResponse){
+          // console.log("insertRes",insertResponse)
+         insertResponse=true;
+       }
+       else{
+        insertResponse=false;
+       }
       }
-      if(!isNullFound){
-      const values = data.map(item => {
-        const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
-      const Location = location || item["location"]; 
-      return [  
-        item["purchase order number"],
-        item['order status'],
-        convertExcelSerialToIST(parseFloat(item['order date'])),
-        item['invoice date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['invoice date'])) : null,
-        item['grn invoice date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['grn invoice date'])) : null,
-        item['order subtype'],
-        item['part number'],
-        // Check if 'order quantity' is a valid number or is null
-        item['order quantity'] !== null && !isNaN(parseFloat(item['order quantity'])) ? parseFloat(item['order quantity']) : null,
-        // Check if 'invoice quantity' is a valid number or is null
-        item['invoice quantity'] !== null && !isNaN(parseFloat(item['invoice quantity'])) ?  parseFloat(item['invoice quantity']) : null,
-        Dealer,
-        Location
-      ]});
-        //  console.log("values ",values);
-      const table = new sql.Table('Hero_Lead_Time_File_latest_data');
-      table.create = false;   
-      
-
-      table.columns.add('Purchase Order Number', sql.VarChar(255),{nullable:true});  // VarChar(255)
-    table.columns.add('Order Status', sql.VarChar(100),{nullable:true});           // VarChar(100)
-    table.columns.add('Order Date', sql.Date,{nullable:true});                     // Date
-    table.columns.add('Invoice Date', sql.Date,{nullable:true});                   // Date
-    table.columns.add('GRN Invoice Date', sql.Date,{nullable:true});               // Date
-    table.columns.add('Order Subtype', sql.VarChar(255),{nullable:true});          // VarChar(255)
-    table.columns.add('Part Number', sql.VarChar(150),{nullable:true});            // VarChar(150)
-    table.columns.add('Order Quantity', sql.Decimal(38, 2),{nullable:true});       // Decimal(38,2)
-    table.columns.add('Invoice Quantity', sql.Decimal(38, 2),{nullable:true});     // Decimal(38,2)
-    table.columns.add('Dealer', sql.VarChar(100),{nullable:true});                 // VarChar(100)
-    table.columns.add('Location', sql.VarChar(100),{nullable:true});   
-      // Add rows to the table
-      values.forEach((row) => {
-        table.rows.add(
-          row[0], // purchase order number
-          row[1], // order status
-          row[2], // order date
-          row[3], // invoice date
-          row[4], // grn invoice date
-          row[5], // order subtype
-          row[6], // part number
-          row[7], // order quantity
-          row[8], // invoice quantity
-          row[9], // dealer
-          row[10] // location
-        );
-      });
-
-      
-      const request =  pool.request();
-      await request.query('TRUNCATE TABLE Hero_Lead_Time_File_latest_data');
-      // Execute the bulk insert
-      await request.bulk(table);
-     
-    }
+      else{
+        // console.log(dealer,location)
+       insertResponse= await heroBulkData.bulkInsertData(excelData.data,pool,null,null);
+       if(insertResponse){
+        // console.log("insertRes",insertResponse)
+         insertResponse=true;
+        }
+        else{
+          insertResponse=false;
+        }
+      }
     }
 
     if(brandId==17 ){
@@ -747,14 +706,23 @@ module.exports = {
       console.log('File deleted successfully');
     });
     // console.log("rowCount ",rowCount)
+    let lastinsertedId=[];
+    let id;
+    let insertedId;
      if(!insertResponse){
-      await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId,'success');
+      id=await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId,'success');
      //console.log("logs inserted successfully------") 
-
+    //  lastinsertedId.push(id);
+      insertedId=id;
+    
+     return {insertResponse,insertedId}  
     }
     else{
       await insertInAuditLogs(pool,userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId,'failure');
-      return insertResponse
+      await delay(3000);
+      insertedId=await getLastInsertedRecord(pool,userId)
+      
+      return {insertResponse,insertedId}
     }
   
   } catch (error) {
@@ -763,7 +731,7 @@ module.exports = {
       return fileMissMatch
     }
   },
-
+ 
   deleteUploadedData:async function(req,res){
     try{
       brandId=req.brand_id;
@@ -813,53 +781,55 @@ module.exports = {
        pool.request().query(query1);
        pool.request().query(query2);
 
-       let query3 = `
-       SELECT TOP 1 *
-       FROM audit_log
-       WHERE brandID = @brandId 
-         AND userID = @userId 
-         AND fileTypeID = @fileTypeId 
-         AND error_log = 'success'`;
+    //    let query3 = `
+    //    SELECT TOP 1 *
+    //    FROM audit_log
+    //    WHERE brandID = @brandId 
+    //      AND userID = @userId 
+    //      AND fileTypeID = @fileTypeId 
+    //      AND error_log = 'success'`;
      
-     if (dealerId) {
-       query3 += ` AND dealerID = @dealerId`;
-     }
+    //  if (dealerId) {
+    //    query3 += ` AND dealerID = @dealerId`;
+    //  }
      
-     if (locationId) {
-       query3 += ` AND locationID = @locationId`;
-     }
+    //  if (locationId) {
+    //    query3 += ` AND locationID = @locationId`;
+    //  }
      
-     // Adding the ORDER BY clause at the end
-     query3 += ` ORDER BY dateTime DESC`;
+    //  // Adding the ORDER BY clause at the end
+    //  query3 += ` ORDER BY dateTime DESC`;
      
-     console.log(fileTypeId);
+    //  console.log(fileTypeId);
      
-     const requests = await pool.request()
-       .input('brandId', brandId)
-       .input('fileTypeId', fileTypeId)
-       .input('userId', userId);
+    //  const requests = await pool.request()
+    //    .input('brandId', brandId)
+    //    .input('fileTypeId', fileTypeId)
+    //    .input('userId', userId);
      
-     if (dealerId) {
-       results.input('dealerId', dealerId);
-     }
+    //  if (dealerId) {
+    //    results.input('dealerId', dealerId);
+    //  }
      
-     if (locationId) {
-       results.input('locationId', locationId);
-     }
+    //  if (locationId) {
+    //    results.input('locationId', locationId);
+    //  }
      
-     const results = await requests.query(query3);
+    //  const results = await requests.query(query3);
      
-
-        if(results.length>0){
-          const lastInsertedId = results[0].id;
+    //  console.log("inserted id",req.insertedId)
+     insertedId=req.insertedId;
+        // if(results.length>0){
+          // const lastInsertedId = results[0].id;
           const deleteQuery = `
-          update audit_log set error_log='failure'
-          WHERE id = @lastInsertedId
+         Delete from audit_log 
+          WHERE id = @insertedId
           `;
       
-          await pool.request().input('lastInsertedId', lastInsertedId)
+          await pool.request().input('insertedId', req.insertedId)
           .query(deleteQuery);
-        }
+          // console.log("delete successfully")
+        //}
    // }
     // console.log(`Last inserted entry ID: ${lastInsertedId}`);
 
@@ -1266,7 +1236,23 @@ module.exports = {
   
   }
 };
+async function   getLastInsertedRecord(pool,userId){
 
+  try{
+    let query=`SELECT TOP 1 *
+FROM Audit_log
+WHERE userID = @userId  
+ORDER BY dateTime DESC;  
+`
+    const result=await pool.request().input('userId',userId).query(query);
+    console.log("result in get last inserted record",result)
+    id=result[0].id;
+    return id;
+  }
+  catch(error){
+    console.log("error in get last inserted ",error.message)
+  }
+}
 function excelSerialToDate(serialNumber) {
   // Excel date starts at January 1, 1900, so we calculate the date from that point.
   const excelStartDate = new Date(1900, 0, 1); // January 1, 1900
@@ -1314,29 +1300,45 @@ function convertExcelSerialToIST(serialNumber) {
 
 
 async function insertInAuditLogs(pool,userId,dealer_id,location,brand_id,publicIp,rowCount,fileTypeId,error_status){
-  console.log(rowCount)
-  pool=await connection.connectDB();
-  const utcDate = new Date();
-  const indiaOffset = 5.5 * 60; // IST is UTC+5:30
-  const indiaTime = new Date(utcDate.getTime() + indiaOffset * 60000);
-  let query2 = `Insert into Audit_log(userID,dealerID,brandID,locationID,dateTime,operation,IP,noOfRecords,fileTypeID,error_log)
-   values(@userId,@dealer_id, @brand_id, @location,@indiaTime,@operation,@publicIp,@rowCount,@fileTypeId,@error_status)`;
-
-  const result1 = await pool
-    .request()
-    .input('fileTypeId',fileTypeId)
-    .input("userId", userId)
-    .input("rowCount", rowCount)
-    .input("dealer_id", dealer_id)
-    .input("operation", operation)
-    .input("brand_id", brand_id)
-    .input("publicIp", publicIp)
-    .input("location", location)
-    .input("indiaTime", sql.DateTime, indiaTime)
-  .input('error_status',error_status)
-    .query(query2);
-
-    console.log("logs inserted succesfully----")
+  // console.log(rowCount)
+  try{
+    pool=await connection.connectDB();
+    const utcDate = new Date();
+    const indiaOffset = 5.5 * 60; // IST is UTC+5:30
+    const indiaTime = new Date(utcDate.getTime() + indiaOffset * 60000);
+    // let query2 = `Insert into Audit_log(userID,dealerID,brandID,locationID,dateTime,operation,IP,noOfRecords,fileTypeID,error_log)
+    //  values(@userId,@dealer_id, @brand_id, @location,@indiaTime,@operation,@publicIp,@rowCount,@fileTypeId,@error_status)`;
+  
+    let query2 = `
+      INSERT INTO Audit_log(userID, dealerID, brandID, locationID, dateTime, operation, IP, noOfRecords, fileTypeID, error_log)
+      OUTPUT INSERTED.ID  -- This returns the inserted ID
+      VALUES (@userId, @dealer_id, @brand_id, @location, @indiaTime, @operation, @publicIp, @rowCount, @fileTypeId, @error_status)
+    `;
+    const result1 = await pool
+      .request()
+      .input('fileTypeId',fileTypeId)
+      .input("userId", userId)
+      .input("rowCount", rowCount)
+      .input("dealer_id", dealer_id)
+      .input("operation", operation)
+      .input("brand_id", brand_id)
+      .input("publicIp", publicIp)
+      .input("location", location)
+      .input("indiaTime", sql.DateTime, indiaTime)
+    .input('error_status',error_status)
+      .query(query2);
+  
+      console.log(result1)
+      const insertedId = result1[0].ID;  // Adjust based on the column name, e.g., 'ID' or 'Audit_log_ID'
+  
+      // console.log(`Logs inserted successfully. Inserted ID: ${insertedId}`);
+      return insertedId;
+      // console.log("logs inserted succesfully----")
+  }
+  catch(error){
+    console.log("error in audit log upload ",error.message)
+  }
+ 
 }
 
 async function heroLeadTimeSPOperations(pool){
@@ -1510,6 +1512,9 @@ async function readExcelFile1(dealer,location,filePath) {
     console.error("Error processing Excel file:", error);
     throw new Error("Failed to read the Excel file");
   }
+}
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 // module.exports={readExcelFile1}
 
