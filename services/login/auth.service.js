@@ -41,7 +41,8 @@ const login = async (email, password,res) => {
   pool=await connection.connectDB();
   const user = await findUserByUsername(pool,email,password);
   if (!user) {
-    throw new Error('Invalid credentials');
+    res.sendStatus(404).json({message:'Invalid Credentials',status:"404"});
+    // throw new Error('Invalid credentials');
   }
 
 findUserById=async (userId)=>{
