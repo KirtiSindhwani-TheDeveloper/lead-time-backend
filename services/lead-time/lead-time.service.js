@@ -1,5 +1,7 @@
 const connection = require("../../connection");
+const path=require('path')
 const sql = require("mssql2");
+const AdmZip = require('adm-zip');
 const sql2=require("mssql")
 const http = require("http");
 const fs=require('fs')
@@ -19,6 +21,7 @@ const duplicationCheckService=require('./duplicate-upload-logic');
 const JcbBulkData = require("./Jcb-bulk-Data");
 const tataPCBulkData=require('./TATA-PC-Bulk-Data')
 const tataCVBulkData=require('./TATA-CV-Bulk-Data')
+const archiver = require('archiver');
 module.exports = {
   addColumns: async function (req) {
     try {
@@ -334,9 +337,9 @@ module.exports = {
         if(dealer && location ){
           const result = await readExcelFile1(dealer,location,req.filePath);
           // console.log(result.headers);
-          rowCount=rowCount-2
-          data = result.data;
-         insertResponse=  await kiaBulkData.bulkInsertPOData(data,pool,dealer,location)
+          rowCount=result.data.length-1;
+          data1 = result.data;
+         insertResponse=  await kiaBulkData.bulkInsertPOData(data1,pool,dealer,location)
          if(insertResponse){
           // console.log("insertRes",insertResponse)
             insertResponse=true;
@@ -349,9 +352,9 @@ module.exports = {
         else{
           const result = await readExcelFile1(null,null,req.filePath);
           // console.log(result.headers);
-          rowCount=rowCount-2;
-          data = result.data;
-        insertResponse=  await kiaBulkData.bulkInsertPOData(data,pool,null,null)
+          rowCount=result.data.length-1;
+          data1 = result.data;
+        insertResponse=  await kiaBulkData.bulkInsertPOData(data1,pool,null,null)
         if(insertResponse){
           // console.log("insertRes",insertResponse)
          insertResponse=true
@@ -467,7 +470,8 @@ module.exports = {
         if(dealer && location){
           const result = await readExcelFile1(dealer,location,req.filePath);
         // console.log(result.headers);
-        rowCount=rowCount-2;
+        rowCount=result.data.length-1;
+        // console.log("rowCount ",rowCount)
         data1 = result.data;
          insertResponse=  await hyundaiBulkData.bulkInsertPOData(data1,pool,dealer,location)
          if(insertResponse){
@@ -482,7 +486,8 @@ module.exports = {
           // console.log("hyundai po")
           const result = await readExcelFile1(null,null,req.filePath);
         //  console.log(result.headers);
-        rowCount=rowCount-2
+        rowCount=result.data.length-1;
+        // console.log("rowCount ",rowCount)
         data = result.data;
         insertResponse=  await hyundaiBulkData.bulkInsertPOData(data,pool,null,null)
         if(insertResponse){
@@ -568,7 +573,7 @@ module.exports = {
         if(dealer && location ){
           // console.log("headers ",headers)
          insertResponse= await mahindraBulkData.bulkInsertData(excelData.data,pool,dealer,location,res,excelData.headers)
-         console.log("insertRes",insertResponse)
+        //  console.log("insertRes",insertResponse)
          if(insertResponse){
            insertResponse=true;
          }
@@ -591,7 +596,8 @@ module.exports = {
       }
 
       if(brandId==9 && req.fileType=='MRN'){
-        rowCount=rowCount-2;
+        // rowCount=rowCount-2;
+        rowCount=excelData.data.length-1;
         if(dealer && location){
           // console.log(excelData.data)
           insertResponse=await mahindraBulkData.bulkMRNInsertData(excelData.data,pool,dealer,location)
@@ -991,45 +997,47 @@ module.exports = {
       try {
        
 
-        brandColumns=req.body.data.columns;
-        locationInfo=req.locationMaster;
+        // brandColumns=req.body.data.columns;
+        // locationInfo=req.locationMaster;
         const wb = xlsx.utils.book_new();
-        if(brandColumns.PO && brandColumns.MRN){
-          combinedDataPo= locationInfo.map((item)=>{
-            return{...item,
-            ...brandColumns.PO.reduce((acc, key) => {
-              acc[key] = null;  // Set each key's value to null
-              return acc;
-            }, {})
-          }})
+      //   if(brandColumns.PO && brandColumns.MRN){
+      //     combinedDataPo= locationInfo.map((item)=>{
+      //       return{...item,
+      //       ...brandColumns.PO.reduce((acc, key) => {
+      //         acc[key] = null;  // Set each key's value to null
+      //         return acc;
+      //       }, {})
+      //     }})
         
-          combinedDataMRN= locationInfo.map((item)=>{
-            return{...item,
-            ...brandColumns.MRN.reduce((acc, key) => {
-              acc[key] = null;  // Set each key's value to null
-              return acc;
-            }, {})
-          }})
+      //     combinedDataMRN= locationInfo.map((item)=>{
+      //       return{...item,
+      //       ...brandColumns.MRN.reduce((acc, key) => {
+      //         acc[key] = null;  // Set each key's value to null
+      //         return acc;
+      //       }, {})
+      //     }})
 
-          const sheet1 = xlsx.utils.json_to_sheet(combinedDataPo);
-          const sheet2 = xlsx.utils.json_to_sheet(combinedDataMRN);
-        xlsx.utils.book_append_sheet(wb, sheet1, "PO Download Format");
+      //     const sheet1 = xlsx.utils.json_to_sheet(combinedDataPo);
+      //     const sheet2 = xlsx.utils.json_to_sheet(combinedDataMRN);
+      //   xlsx.utils.book_append_sheet(wb, sheet1, "PO Download Format");
 
-       xlsx.utils.book_append_sheet(wb, sheet2, "MRN Download Format");
-        }
-        else{
-          combinedDataPo= locationInfo.map((item)=>{
-            return{...item,
-            ...brandColumns.PO.reduce((acc, key) => {
-              acc[key] = null;  // Set each key's value to null
-              return acc;
-            }, {})
-          }})
+      //  xlsx.utils.book_append_sheet(wb, sheet2, "MRN Download Format");
+      //   }
+      //   else{
+      //     combinedDataPo= locationInfo.map((item)=>{
+      //       return{...item,
+      //       ...brandColumns.PO.reduce((acc, key) => {
+      //         acc[key] = null;  // Set each key's value to null
+      //         return acc;
+      //       }, {})
+      //     }})
 
-          const sheet1 = xlsx.utils.json_to_sheet(combinedDataPo);
-          xlsx.utils.book_append_sheet(wb, sheet1, "PO Download Format");
-        }
+      //     const sheet1 = xlsx.utils.json_to_sheet(combinedDataPo);
+      //     xlsx.utils.book_append_sheet(wb, sheet1, "PO Download Format");
+      //   }
       
+      const sheet2 = xlsx.utils.json_to_sheet(req.locationMaster);
+        xlsx.utils.book_append_sheet(wb, sheet2, "Workshop List");
         const buffer = xlsx.write(wb, { bookType: "xlsx", type: "buffer" });
         // console.log("Buffer created with size:", buffer.length);
         resolve(buffer);
@@ -1057,7 +1065,149 @@ module.exports = {
 
   },
  
+  downloadBrandFormat:async function(req,res) {
+    
+    try{
+      const brandId = req.brand_id;
+      let filePaths = [];
+    const baseFolderPath = path.join(__dirname);
+    // console.log("brase folder path ",baseFolderPath)
+// Generate paths dynamically for the required Excel files
+switch (brandId) {
+    case 9: {
+      const path1=path.join(baseFolderPath, 'brands-download-format', 'Mahindra MRN.xlsx')
+        
+      // console.log(path1)
+      // // const filePath = path.join(path);
+      // console.log('File exists check: ', fs.existsSync(path1));
+        // Single file example
+        filePaths = [path.join(baseFolderPath, 'brands-download-format', 'Mahindra MRN.xlsx'),
+          path.join(baseFolderPath, 'brands-download-format','mahindra_PO_DATA.xlsx')
+        ];
+        // console.log(filePaths)
+        break;
+    }
+    case 12: {
+        // Two files example
+        filePaths = [
+            path.join(baseFolderPath,'brands-download-format', 'RENAULT_GRN_wITHdealer_locatION_data.xlsx'),
+            path.join(baseFolderPath,'brands-download-format', 'RENAULT_POSBO_dATA__dEALERlocATION.xlsx')
+        ];
+        break;
+    }
+    case 11: {
+        // Single file example
+        filePaths = [path.join(baseFolderPath,'brands-download-format', 'Hyundai_BO_DEALERLOCATION_dATA.xlsx'),
+          path.join(baseFolderPath,'brands-download-format', 'Hyundai_PurchaseOrder_DEALERLOCATION_Data.xlsx')
+        ];
+        break;
+    }
+    case 32: {
+        // Single file example
+        filePaths = [path.join(baseFolderPath,'brands-download-format', 'JCB_MRN.xlsx'),
+          path.join(baseFolderPath,'brands-download-format', 'JCB_PURCHASEORDER.xlsx')
+        ];
+        break;
+    }
+    case 33: {
+        // Single file example
+        filePaths = [path.join(baseFolderPath,'brands-download-format', 'KIA_PURCHASE_Data (1).xlsx'),
+          path.join(baseFolderPath,'brands-download-format', 'KIA_BO_Data (1).xlsx')
+        ];
+        break;
+    }
+    case 20: {
+      // Single file example
+      filePaths = [path.join(baseFolderPath, 'brands-download-format','HeroTestData.xlsx'),
+      ];
+      break;
+  }
+  case 22: {
+    // Single file example
+    filePaths = [path.join(baseFolderPath,'brands-download-format', 'Honda2w_DATA_.xlsx'),
+    ];
+    break;
+}
+case 17: {
+  // Single file example
+  filePaths = [path.join(baseFolderPath,'brands-download-format', 'TATACVBU_DATA.xlsx'),
+  ];
+  break;
+}
+case 28: {
+  // Single file example
+  filePaths = [path.join(baseFolderPath,'brands-download-format', 'TATAPCBU_DATA.xlsx'),
+  ];
+  break;
+}
+    default: {
+        return res.status(404).send('No files available for this brand.');
+    }
 
+  }
+  const zip = new AdmZip();
+
+  zip.addLocalFile(filePaths[0]);
+  zip.addLocalFile(filePaths[1]);
+
+  // Set headers to send the zip file
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', 'attachment; filename=files.zip');
+//  console.log(zip)
+  // Send the zip buffer as the response
+  res.send(zip.toBuffer());
+
+  // const workbook = XLSX.readFile(filePaths[0]);  
+  // // Get the first sheet from the workbook
+  // const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+  // // Convert the worksheet to JSON
+  // const data = XLSX.utils.sheet_to_json(worksheet);
+  // const newWorksheet = XLSX.utils.json_to_sheet(data);
+  // // Create a new workbook and append the modified worksheet
+  // const newWorkbook = XLSX.utils.book_new();
+  // XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'Sheet1');
+
+  // const outputFilePath = 'C:\\SpareCare Solutions\\Lead Time\\Lead-Time-Backend\\lead-time-server\\services\\lead-time\\temp\\modified_excel_file.xlsx';
+
+  // // Write the modified workbook to a file
+  // XLSX.writeFile(newWorkbook, outputFilePath);
+  // const buffer = xlsx.write(newWorkbook, { bookType: "xlsx", type: "buffer" });
+        
+  // if(filePaths.length==2){
+  //   createSecondBrandFormatFile(req,res);
+  // }
+  // // console.log('Buffer created with size:', buffer.length);
+  // return buffer
+
+}
+  catch(error){
+    return error.message
+  }
+
+    //   if (filePaths.length === 1) {
+    //     const filePath = filePaths[0];
+    //     if (fs.existsSync(filePath)) {
+    //         return res.download(filePath, path.basename(filePath), (err) => {
+    //             if (err) {
+    //                 return res.status(500).send('Error downloading the file');
+    //             }
+    //         });
+    //     } else {
+    //         return res.status(404).send('File not found.');
+    //     }
+    // } else {
+      
+    //     // If there are multiple files, zip them and send the zip file
+    //    const result= await createZipAndDownload(filePaths, res);
+    //    console.log("result in downlod brand format ",result)
+    //   //  return result
+    // }
+
+  
+  
+  }
+,
   getUploadLogs:async function(req){
     try{
 
@@ -1236,6 +1386,9 @@ module.exports = {
   
   }
 };
+async function createSecondBrandFormatFile() {
+  
+}
 async function   getLastInsertedRecord(pool,userId){
 
   try{
@@ -1297,7 +1450,125 @@ function convertExcelSerialToIST(serialNumber) {
   return formatDate;
 }
 
+const createZipAndDownload = async (filePaths, res) => {
+  try {
+  
 
+    // Define the path for the temporary ZIP file
+    const outputZipPath = path.join(__dirname, 'target1.zip');
+    const output = fs.createWriteStream(outputZipPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    // Pipe the archive to the output file
+    // archive.pipe(output);
+
+   
+
+//  archive.directory(path.join(__dirname, 'source_dir'), false); // No subdirectory in archive, files go to root
+//     archive.directory(path.join(__dirname, 'subdir'), 'new-subdir'); // Files from 'subdir' go into 'new-subdir'
+    // Once the archive is finalized and the file is created, send it to the client
+    output.on('close', function () {
+  
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename=target1.zip');
+
+      // Send the file as a response
+      fs.createReadStream(outputZipPath).pipe(res);
+       res.download(output)
+      console.log(archive.pointer() + ' total bytes');
+      console.log('archiver has been finalized and the output file descriptor has closed.');
+    });
+    fs.createReadStream(outputZipPath).pipe(res).
+     // Add files to the archive
+     res.attachment('target1.zip'); // Triggers download in the browser
+
+  // // Pipe the archive data to the response
+  // archive.pipe(res);
+
+  // Add files to the archive
+  filePaths.forEach((filePath) => {
+    const absolutePath = path.resolve(filePath);
+    try {
+      fs.accessSync(absolutePath, fs.constants.R_OK);  // Check read permissions
+      archive.append(fs.createReadStream(absolutePath), { name: path.basename(filePath) });
+    } catch (err) {
+      console.error(`File not accessible: ${absolutePath}`, err);
+      // Handle error, maybe return an error response to the client
+    }
+  });
+  
+   
+ // Finalize the archive (this will create the ZIP file)
+ archive.finalize();
+    // Handle errors during the archiving process
+    archive.on('error', function (err) {
+      console.error('Error while creating zip:', err);
+      return res.status(500).send('Error while creating zip file.');
+    });
+   
+  } catch (error) {
+    console.error('Error in createZipAndDownload:', error);
+    return res.status(500).send('An error occurred while preparing the zip file.');
+  }
+};
+// const createZipAndDownload = async (filePaths, res) => {
+//   try {
+//     // Set up a stream for the ZIP file
+//     // console.log(filePaths)
+//     const archive = archiver('zip', { zlib: { level: 9 } });
+
+   
+
+//     // // Log file paths being added to the zip
+//     // console.log("Adding the following files to zip:", filePaths);
+
+//     // Add each file to the zip archive
+//     filePaths.forEach((filePath) => {
+//       const absolutePath = path.resolve(filePath);  // Resolves the absolute path
+//       // console.log(`Checking if file exists: ${absolutePath}`);
+
+//       try {
+//         fs.accessSync(absolutePath, fs.constants.R_OK);  // Check read permissions
+//         archive.file(absolutePath, { name: path.basename(filePath) });
+//         // console.log(`Added file: ${absolutePath}`);
+//       } catch (err) {
+//         console.error(`File not accessible: ${absolutePath}`, err);
+//       }
+//     });
+
+//     // Finalize the archive (this will trigger the download)
+//     var output = fs.createWriteStream('target.zip');
+//     // var archive = archiver('zip');
+//     const outputZipPath = path.join(__dirname, 'Lead_Time_Files.zip');
+//     output.on('close', function () {
+//       res.setHeader('Content-Type', 'application/zip');
+//       res.setHeader('Content-Disposition', 'attachment; filename=Lead_Time_Files.zip');
+      
+//       // Send the file as response
+//       fs.createReadStream(outputZipPath).pipe(res);
+//         console.log(archive.pointer() + ' total bytes');
+//         console.log('archiver has been finalized and the output file descriptor has closed.');
+//     });
+//     //  // Pipe the archive output directly to the response
+//     //  archive.pipe(res);
+//     archive.on('error', function(err){
+//         throw err;
+//     });
+    
+//     // archive.pipe(output);
+    
+//     // append files from a sub-directory, putting its contents at the root of archive
+//     archive.directory(path.join(__dirname, 'source_dir'), false); // No subdirectory in archive, files go to root
+// archive.directory(path.join(__dirname, 'subdir'), 'new-subdir'); // Files from 'subdir' go into 'new-subdir'
+
+    
+//     archive.finalize();
+    
+
+//   } catch (error) {
+//     console.error('Error in createZipAndDownload:', error);
+//     return res.status(500).send('An error occurred while preparing the zip file.');
+//   }
+// };
 
 async function insertInAuditLogs(pool,userId,dealer_id,location,brand_id,publicIp,rowCount,fileTypeId,error_status){
   // console.log(rowCount)
@@ -1405,6 +1676,7 @@ async function readExcelFile1(dealer,location,filePath) {
     else{
      
       subHeaders = [
+        
         "",
         "",
         "",

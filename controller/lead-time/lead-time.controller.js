@@ -189,8 +189,9 @@ res.setHeader('Content-Type', 'application/json');
 
       // console.log(req.body);
       const data=await locationService.getLocationMaster(req.body);
-      // console.log("data ",data)
-      const result = await leadTimeService.downloadFormat({body:req.body,locationMaster:data});
+      //  console.log("data ",data)
+       const result = await leadTimeService.downloadFormat({body:req.body,locationMaster:data});
+      
       res.setHeader(
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -223,6 +224,25 @@ res.setHeader('Content-Type', 'application/json');
       catch(error){
         res.status(201).send({error:"Uploaded Logs are not fetched"})
       }
+  },
+
+  downloadBrandFormat:async function (req,res) {
+    try{
+
+ 
+      const result=await leadTimeService.downloadBrandFormat(req.body,res);
+  //     res.setHeader('Content-Type', 'application/zip');
+  // res.setHeader('Content-Disposition', 'attachment; filename=files.zip');
+  
+  // Create a zip archive
+
+// Send the Excel file as a response
+res.send(result);
+    }
+    catch(error){
+      res.status(201).send({error:"download format are not fetched"})
+    }
+    
   }
 };
 

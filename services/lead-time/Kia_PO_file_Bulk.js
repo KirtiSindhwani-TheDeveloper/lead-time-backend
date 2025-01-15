@@ -77,7 +77,7 @@ module.exports = {
         
             if(!Dealer || !Location || !item["part no current"] || !item["part no order"] || item["part no current"]==0 || item["part no order"]==0
             ){
-
+              console.log("item ",item)
                     isNullFound=true;
                     return isNullFound;    
             }
