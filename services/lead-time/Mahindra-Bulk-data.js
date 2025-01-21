@@ -4,30 +4,22 @@ const moment = require("moment");
 module.exports = {
     bulkInsertData: async function(data,pool, dealer, location, res,headers) {
         try{
-            // let isColumnMatch=false;
-            // const expectedColumns = [
-            //     "po release date",
-            //     "po type",
-            //     "po status",
-            //     "po number",
-            //     "po group",
-            //     "po line item status",
-            //     "po rejection reason",
-            //     "part no",
-            //     "so qty",
-            //     "dealer",
-            //     "location"
-            // ];
-            // const uploadedColumns = headers
-            // // Extract the columns from the first row of data (assuming the first row is the header)
-            // if (!columnsMatch(expectedColumns, uploadedColumns)) {
-            //     return res.status(400).json({
-            //         status: 400,
-            //         message: 'Wrong file Selected'
-
-            //     });
-            // }
             let isNullFound=false;
+            let part_number=data[0]["part no"];
+            let brandId=9;
+            let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+            const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+           // console.log("result in mahindra po",result)
+            if(result.length==0){
+                // let tableNamePO='Mahindra_PO_file_Lead_Time_Latest_Data';
+                // let tableNameMRN='Mahindra_receipt_file_lead_Time_Latest_data'
+                // let query1=`TRUNCATE TABLE ${tableNamePO}`
+                // let query2=`TRUNCATE TABLE ${tableNameMRN}`
+                // await pool.request().query(query1);
+                // await pool.request().query(query2);
+            //   return res.sendStatus(404).json({message:'Part Number does not exist'});
+            return {poFailed:true}
+            }
             for(let item of data){
                 const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
             const Location = location || item["location"];
@@ -113,10 +105,25 @@ module.exports = {
     
 
     bulkMRNInsertData: async function(data,pool, dealer, location,res,headers) {
-        console.log('----------------------it is executing');
+        // console.log('----------------------it is executing');
         let isNullFound=false;
         // console.log(data[2])
+       
         data=data.slice(1);
+        let part_number=data[0]["part number"];
+        let brandId=9;
+        let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+        const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+      //  console.log("result in mahindra ",result)
+        if(result.length==0){
+            // let tableNamePO='Mahindra_PO_file_Lead_Time_Latest_Data';
+            //     let tableNameMRN='Mahindra_receipt_file_lead_Time_Latest_data'
+            //     let query1=`TRUNCATE TABLE ${tableNamePO}`
+            //     let query2=`TRUNCATE TABLE ${tableNameMRN}`
+            //     await pool.request().query(query1);
+            //     await pool.request().query(query2);
+                return {mrnFailed:true}
+        }
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
             const Location = location || item["location"];

@@ -2,9 +2,23 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require('moment');
 module.exports={
-    bulkInsertMRNData: async function(data,pool, dealer, location) {
+    bulkInsertMRNData: async function(data,pool, dealer, location,res) {
         // console.log(data[0]);
         let isNullFound=false;
+        let part_number=data[0]["part no"];
+        let brandId=12;
+        let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+        const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+        console.log("result in renault mrn",result)
+        if(result.length==0){
+            // let tableNameMRN='Renault_GRN_file_lead_time_latest_data';
+            // let tableNamePO='Renault_POSBO_file_lead_time_latest_data'
+            // let query1=`TRUNCATE TABLE ${tableNamePO}`
+            // let query2=`TRUNCATE TABLE ${tableNameMRN}`
+            // await pool.request().query(query1);
+            // await pool.request().query(query2);
+            return {mrnFailed:true}
+        }
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
@@ -81,8 +95,23 @@ module.exports={
 }
     },
     
-    bulkInsertPOData: async function(data, pool, dealer, location) {
+    bulkInsertPOData: async function(data, pool, dealer, location,res) {
         let isNullFound=false;
+        
+        let part_number=data[0]["order part number"];
+        let brandId=12;
+        let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+        const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+       // console.log("result in renault po",result)
+        if(result.length==0){
+            // let tableNameMRN='Renault_GRN_file_lead_time_latest_data';
+            // let tableNamePO='Renault_POSBO_file_lead_time_latest_data'
+            // let query1=`TRUNCATE TABLE ${tableNamePO}`
+            // let query2=`TRUNCATE TABLE ${tableNameMRN}`
+            // await pool.request().query(query1);
+            // await pool.request().query(query2);
+            return {poFailed:true}
+        }
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];

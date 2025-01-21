@@ -11,7 +11,7 @@ module.exports={
   
       const request = new sql.Request(transaction);
       const query = `
-         Select brand_id,brand from Brand_Master
+         Select DISTINCT brandID AS brand_id, Brand AS brand from z_scope.dbo.locationInfo where brandStatus=1
         `;
   
         // Execute the insert query for each row

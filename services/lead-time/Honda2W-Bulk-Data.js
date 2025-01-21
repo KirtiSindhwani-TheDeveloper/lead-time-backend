@@ -2,7 +2,7 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-  bulkInsertData: async function(data,pool,brand,dealer,location,brandId,dealerId,locationId) {
+  bulkInsertData: async function(data,pool,brand,dealer,location,brandId,dealerId,locationId,res) {
 
     
     const table = new sql.Table('Honda_2W_purchase_register_File_Lead_Time_latest_data');
@@ -29,6 +29,16 @@ module.exports = {
       table.columns.add('LocationID', sql.VarChar(50), { nullable: true }); // VarChar(50) for Location ID
   
     let isNullFound=false;
+    let part_number=data[0]["part number"]
+       let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number`;
+       let result=await pool.request().input('part_number',part_number).query(query);
+       console.log("result in honda ",result)
+       if(result.length==0){
+      //   let tableNamePO='Honda_2W_purchase_register_File_Lead_Time_latest_data'
+      // let query1=`TRUNCATE TABLE ${tableNamePO}`
+      // await pool.request().query(query1);
+      return {poFailed:true}
+       }
         for(let item of data){
           // let dealerIdAsRow=dealerId;
           // let locationIdAsRow=locationId;
@@ -41,30 +51,43 @@ module.exports = {
             }
             
             if(dealer==null && location==null){
-             let dealerInFile=item["dealer"];
-               let query34=`select dealerID as dealerID from z_scope.dbo.locationInfo where brandID=@brandId and dealer=@dealerInFile`
-               let dealerIdRes=await pool.request().input("brandId",brandId).input("dealerInFile",dealerInFile).query(query34);
-               if(dealerIdRes[0]?.dealerID!=null){
-                dealerId=dealerIdRes[0].dealerID
-                //console.log("dealer id ",dealerId)
-               }
-              else{
-                dealerId=null;
-              }
-              // console.log("dealer res ",dealerIdRes)
-              let locationInFile=item["location"];
-               let query1=`select LocationID as locationID from z_scope.dbo.locationInfo where brandID=@brandId and dealerID=@dealerId and location=@locationInFile`
-               let locationIdRes1=await pool.request().input("brandId",brandId).input("dealerId",dealerId)
-               .input('locationInFile',locationInFile).query(query1);
-               if(locationIdRes1[0]?.locationID!=null){
-                locationId=locationIdRes1[0]?.locationID;
-                 // console.log("dealer res ",locationIdRes1)
+            let procedureName='Hond2WGetDealerAndLocationInfoBasedOnBrandLevel'
+              const request =await  pool.request();
+              result = await request.input('brandId',brandId)
+              .input('Dealer',Dealer).input('Location',Location)
+              .output('dealerId', sql.Int)  // Output parameter for dealerId
+              .output('locationId', sql.Int) .execute(procedureName);
+              // console.log("result in honda ",result)
+              dealerId = result[0][0]?.dealerId;
+              // console.log("dealerId in honda",dealerId)
+              locationId = result[0][0]?.locationId;
 
-               }
-              else{
-                locationId=null
-              }
             }
+            // if(dealer==null && location==null){
+            //  let dealerInFile=item["dealer"];
+            //    let query34=`select dealerID as dealerID from z_scope.dbo.locationInfo where brandID=@brandId and dealer=@dealerInFile`
+            //    let dealerIdRes=await pool.request().input("brandId",brandId).input("dealerInFile",dealerInFile).query(query34);
+            //    if(dealerIdRes[0]?.dealerID!=null){
+            //     dealerId=dealerIdRes[0].dealerID
+            //     //console.log("dealer id ",dealerId)
+            //    }
+            //   else{
+            //     dealerId=null;
+            //   }
+            //   // console.log("dealer res ",dealerIdRes)
+            //   let locationInFile=item["location"];
+            //    let query1=`select LocationID as locationID from z_scope.dbo.locationInfo where brandID=@brandId and dealerID=@dealerId and location=@locationInFile`
+            //    let locationIdRes1=await pool.request().input("brandId",brandId).input("dealerId",dealerId)
+            //    .input('locationInFile',locationInFile).query(query1);
+            //    if(locationIdRes1[0]?.locationID!=null){
+            //     locationId=locationIdRes1[0]?.locationID;
+            //      // console.log("dealer res ",locationIdRes1)
+
+            //    }
+            //   else{
+            //     locationId=null
+            //   }
+            // }
 
             table.rows.add(
               item["order number"],

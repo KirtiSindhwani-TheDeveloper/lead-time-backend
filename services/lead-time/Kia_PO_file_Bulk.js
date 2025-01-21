@@ -2,8 +2,23 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-  bulkInsertMRNData: async function(data,pool,dealer,location) {
-    console.log("kia mrn excuting")
+  bulkInsertMRNData: async function(data,pool,dealer,location,res) {
+    // console.log("kia mrn excuting")
+
+    let part_number=data[0]["part no"];
+    let brandId=33;
+    let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+    const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+    console.log("result in kia ",result)
+    if(result.length==0){
+    //  let tableNamePO='kia_bo_file_lead_time_latest_data';
+    //  let tableNameMRN='kia_Pur_File_lead_time_latest_data'
+    //  let query1=`TRUNCATE TABLE ${tableNamePO}`
+    //  let query2=`TRUNCATE TABLE ${tableNameMRN}`
+    //  await pool.request().query(query1);
+    //  await pool.request().query(query2);
+     return {mrnFailed:true}
+    }
     let isNullFound=false;
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -64,11 +79,27 @@ module.exports = {
         }
   },
 
-  bulkInsertPOData:async function(data,pool,dealer,location){
+  bulkInsertPOData:async function(data,pool,dealer,location,res){
     // console.log("item",data[0])
-    console.log("kia po excuting")
+    // console.log("kia po excuting")
     let isNullFound=false;
     data=data.slice(1);
+    
+    let part_number=data[0]["part no current"];
+    //console.log("part number in kia ",part_number,data[0])
+    let brandId=33;
+    let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+    const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+    //console.log("result in kia ",result)
+    if(result.length==0){
+    //  let tableNamePO='kia_bo_file_lead_time_latest_data';
+    //  let tableNameMRN='kia_Pur_File_lead_time_latest_data'
+    //  let query1=`TRUNCATE TABLE ${tableNamePO}`
+    //  let query2=`TRUNCATE TABLE ${tableNameMRN}`
+    //  await pool.request().query(query1);
+    //  await pool.request().query(query2);
+     return {poFailed:true}
+    }
         for(let item of data){
 
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]

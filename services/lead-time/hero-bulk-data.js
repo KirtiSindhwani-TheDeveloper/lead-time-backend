@@ -2,17 +2,26 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-  bulkInsertData: async function(data,pool,dealer,location) {
+  bulkInsertData: async function(data,pool,dealer,location,res) {
 
     let isNullFound=false;
-    
+    let part_number=data[0]["part number"];
+    let brandId=20;
+    let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+    const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+   // console.log("result in hero ",result)
+    if(result.length==0){
+      // let tableNamePO='Hero_Lead_Time_File_latest_data'
+      // let query1=`TRUNCATE TABLE ${tableNamePO}`
+      // await pool.request().query(query1);
+      return {poFailed:true}
+    }
     for(let item of data){
         const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
     const Location = location || item["location"];
         if(!Dealer || !Location || !item["part number"]){
 
                 isNullFound=true;
-                
                 return isNullFound;    
         }
     }

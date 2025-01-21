@@ -2,10 +2,25 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-    bulkInsertPOData: async function(data,pool, dealer, location) {
+    bulkInsertPOData: async function(data,pool, dealer, location,res) {
       let isNullFound=false;
        data=data.slice(1);
       
+       let part_number=data[0]["part no current"];
+      //  console.log("part_number in hyundai ",part_number,data[0])
+       let brandId=11;
+       let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+       const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+      //  console.log("result in hyundai ",result)
+       if(result.length==0){
+        // let tableNamePO='Hyundai_bo_file_lead_time_latest_data';
+        // let tableNameMRN='Hyundai_Pur_File_lead_time_latest_data'
+        // let query1=`TRUNCATE TABLE ${tableNamePO}`
+        // let query2=`TRUNCATE TABLE ${tableNameMRN}`
+        // await pool.request().query(query1);
+        // await pool.request().query(query2);
+        return {poFailed:true}
+       }
       //  console.log(data[0])
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
@@ -75,13 +90,27 @@ module.exports = {
       }
     },
 
-    bulkInsertData:async function(data,pool,dealer,location){
+    bulkInsertData:async function(data,pool,dealer,location,res){
       let isNullFound=false;
+      let part_number=data[0]["part no"];
+      let brandId=11;
+      let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+      const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+     // console.log("result in hyundai ",result)
+      if(result.length==0){
+      //  let tableNamePO='Hyundai_bo_file_lead_time_latest_data';
+      //  let tableNameMRN='Hyundai_Pur_File_lead_time_latest_data'
+      //  let query1=`TRUNCATE TABLE ${tableNamePO}`
+      //  let query2=`TRUNCATE TABLE ${tableNameMRN}`
+      //  await pool.request().query(query1);
+      //  await pool.request().query(query2);
+         return {mrnFailed:true}
+      }
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
             if(!Dealer || !Location || !item["part no"] || item["part no"]==0){
-
+              // console.log("item",item)
                     isNullFound=true;
                     return isNullFound;    
             }

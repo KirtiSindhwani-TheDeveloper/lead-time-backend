@@ -2,9 +2,24 @@ const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
-    bulkInsertData: async function(data,pool, dealer, location) {
+    bulkInsertData: async function(data,pool, dealer, location,res) {
         let isNullFound=false;
         // console.log(data);
+         let part_number=data[0]["material no"];
+        // console.log("part number in jcb ",part_number)
+       let brandId=32;
+       let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+       const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+      // console.log("result in jcb ",result)
+       if(result.length==0){
+        // let tableNamePO='JCB_PO_file_lead_time_latest_data';
+        // let tableNameMRN='JCB_mrn_file_lead_time_latest_data'
+        // let query1=`TRUNCATE TABLE ${tableNamePO}`
+        // let query2=`TRUNCATE TABLE ${tableNameMRN}`
+        // await pool.request().query(query1);
+        // await pool.request().query(query2);
+        return {poFailed:true}
+       }
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
@@ -75,10 +90,24 @@ module.exports = {
     },
     
 
-    bulkMRNInsertData: async function(data,pool, dealer, location) {
+    bulkMRNInsertData: async function(data,pool, dealer, location,res) {
 
         // console.log('----------------------it is executing',data[0])
         let isNullFound=false;
+        let part_number=data[0]["part code"];
+        let brandId=32;
+        let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
+        const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
+        // console.log("result in jcb ",result)
+        if(result.length==0){
+        //     let tableNamePO='JCB_PO_file_lead_time_latest_data';
+        // let tableNameMRN='JCB_mrn_file_lead_time_latest_data'
+        // let query1=`TRUNCATE TABLE ${tableNamePO}`
+        // let query2=`TRUNCATE TABLE ${tableNameMRN}`
+        // await pool.request().query(query1);
+        // await pool.request().query(query2);
+            return {mrnFailed:true}
+        }
         for(let item of data){
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];

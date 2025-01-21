@@ -50,7 +50,10 @@ module.exports={
         }
         convertedStr = String(str).replace(/'/g, "");
         // console.log("converted str ",str)
-        return convertedStr.replace(/[]+/g, "").trim();
+         convertedStr.replace(/[]+/g, "").trim();
+        //  extra line added on 21 jan 
+        convertedStr = convertedStr.replace(/\/.*?\//g, "").replace(/\//g, "");
+        return convertedStr
       }
   
       
