@@ -1698,7 +1698,10 @@ async function readExcelFile1(dealer,location,filePath) {
       }
       convertedStr = String(str).replace(/'/g, "");
       // console.log("converted str ",str)
-      return convertedStr.replace(/[]+/g, "").trim();
+       convertedStr.replace(/[]+/g, "").trim();
+      convertedStr= convertedStr.replace(/[^a-zA-Z0-9\s]/g, "") // Remove all non-alphanumeric characters and symbols
+      .trim(); // Remove leading/trailing spaces
+      return convertedStr;
     }
 
     // Initialize an object to store sheet data

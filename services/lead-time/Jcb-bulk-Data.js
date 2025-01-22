@@ -24,7 +24,7 @@ module.exports = {
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
             if(!Dealer || !Location || !item["material no"] || item["material no"]==0){
-
+                console.log("item po ",item)
                     isNullFound=true;
                     return isNullFound;    
             }
@@ -112,7 +112,7 @@ module.exports = {
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"];
             if(!Dealer || !Location || !item["part code"] || item["part code"]==0){
-
+                console.log("item ",item)
                     isNullFound=true;
                     return isNullFound;    
             }

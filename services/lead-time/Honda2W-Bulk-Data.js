@@ -3,7 +3,7 @@ const sql=require('mssql2')
 const moment = require("moment");
 module.exports = {
   bulkInsertData: async function(data,pool,brand,dealer,location,brandId,dealerId,locationId,res) {
-
+   
     
     const table = new sql.Table('Honda_2W_purchase_register_File_Lead_Time_latest_data');
       table.create = false;
@@ -39,6 +39,9 @@ module.exports = {
       // await pool.request().query(query1);
       return {poFailed:true}
        }
+       let query56=`Select dealerId,dealer,location,locationId from z_scope.dbo.locationInfo where brandId=22`;
+            let result56=await pool.request().query(query56);
+            
         for(let item of data){
           // let dealerIdAsRow=dealerId;
           // let locationIdAsRow=locationId;
@@ -50,44 +53,31 @@ module.exports = {
                     return isNullFound;    
             }
             
+            
             if(dealer==null && location==null){
-            let procedureName='Hond2WGetDealerAndLocationInfoBasedOnBrandLevel'
-              const request =await  pool.request();
-              result = await request.input('brandId',brandId)
-              .input('Dealer',Dealer).input('Location',Location)
-              .output('dealerId', sql.Int)  // Output parameter for dealerId
-              .output('locationId', sql.Int) .execute(procedureName);
-              // console.log("result in honda ",result)
-              dealerId = result[0][0]?.dealerId;
-              // console.log("dealerId in honda",dealerId)
-              locationId = result[0][0]?.locationId;
+
+            
+            // console.log("result in honda ",result56)        
+            
+              let resultDealer = result56.find(item1 =>{
+                return item1.dealer.toLowerCase()==(item["dealer"].toLowerCase());
+              } );
+               let resultLocation = result56.find(item1 => {return item1.location.toLowerCase()==(item["location"].toLowerCase())});
+               dealerId = resultDealer ? resultDealer.dealerId : null;
+               locationId = resultLocation ? resultLocation.locationId : null;
+            // let procedureName='Hond2WGetDealerAndLocationInfoBasedOnBrandLevel'
+            //   const request =await  pool.request();
+            //   result = await request.input('brandId',brandId)
+            //   .input('Dealer',Dealer).input('Location',Location)
+            //   .output('dealerId', sql.Int)  // Output parameter for dealerId
+            //   .output('locationId', sql.Int) .execute(procedureName);
+            //   // console.log("result in honda ",result)
+            //   dealerId = result[0][0]?.dealerId;
+            //   // console.log("dealerId in honda",dealerId)
+            //   locationId = result[0][0]?.locationId;
 
             }
-            // if(dealer==null && location==null){
-            //  let dealerInFile=item["dealer"];
-            //    let query34=`select dealerID as dealerID from z_scope.dbo.locationInfo where brandID=@brandId and dealer=@dealerInFile`
-            //    let dealerIdRes=await pool.request().input("brandId",brandId).input("dealerInFile",dealerInFile).query(query34);
-            //    if(dealerIdRes[0]?.dealerID!=null){
-            //     dealerId=dealerIdRes[0].dealerID
-            //     //console.log("dealer id ",dealerId)
-            //    }
-            //   else{
-            //     dealerId=null;
-            //   }
-            //   // console.log("dealer res ",dealerIdRes)
-            //   let locationInFile=item["location"];
-            //    let query1=`select LocationID as locationID from z_scope.dbo.locationInfo where brandID=@brandId and dealerID=@dealerId and location=@locationInFile`
-            //    let locationIdRes1=await pool.request().input("brandId",brandId).input("dealerId",dealerId)
-            //    .input('locationInFile',locationInFile).query(query1);
-            //    if(locationIdRes1[0]?.locationID!=null){
-            //     locationId=locationIdRes1[0]?.locationID;
-            //      // console.log("dealer res ",locationIdRes1)
-
-            //    }
-            //   else{
-            //     locationId=null
-            //   }
-            // }
+          
 
             table.rows.add(
               item["order number"],

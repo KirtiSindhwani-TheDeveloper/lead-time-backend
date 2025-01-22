@@ -47,6 +47,7 @@ const login = async (email, password,res) => {
 
 findUserById=async (userId)=>{
     try {
+      console.log("user id ",userId)
       pool=await connection.connectDB();
     let query=`SELECT * FROM [user] WHERE userId=@userId`
   const result = await pool.request()
@@ -124,7 +125,7 @@ const insertAuditLog= async (pool,refreshToken,userId)=>{
 const findUserByUsername = async (pool,email,password) => {
     
   try {
-      console.log("email ",email,password)
+      //console.log("email ",email,password)
       let query=`SELECT userId,name,designationId,roleId,emailId,mobileNo,password,status,added_on,added_by,scope_user_id FROM [user] WHERE emailId = @email and password=@password`
     const result = await pool.request()
       .input('email',  email)

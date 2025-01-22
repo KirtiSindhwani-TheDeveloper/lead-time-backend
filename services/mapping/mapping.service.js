@@ -53,6 +53,8 @@ module.exports={
          convertedStr.replace(/[]+/g, "").trim();
         //  extra line added on 21 jan 
         convertedStr = convertedStr.replace(/\/.*?\//g, "").replace(/\//g, "");
+       convertedStr= convertedStr.replace(/[^a-zA-Z0-9\s]/g, "") // Remove all non-alphanumeric characters and symbols
+        .trim(); // Remove leading/trailing spaces
         return convertedStr
       }
   
