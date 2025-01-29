@@ -18,7 +18,6 @@ module.exports={
         try{
             let pool=await connection.connectDB();
             let query=`Select id,role_name from role_master where status=1`;
-
            let result= await pool.request().query(query);
             return result;
 

@@ -13,7 +13,7 @@ module.exports={
       brand_id=req.brand_id;
       const request = new sql.Request(transaction);
       const query = `
-         Select distinct dealerID as dealer_id,dealer as dealer_name from z_scope.dbo.locationinfo where brandID=@brand_id and dealerStatus=1;
+         Select distinct dealerID as dealer_id,dealer as dealer_name from z_scope.dbo.locationinfo where brandID=@brand_id and dealerStatus=1 order by dealer;
         `;
   
         // Execute the insert query for each row

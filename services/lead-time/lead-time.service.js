@@ -1148,7 +1148,7 @@ case 28: {
       
       let query = `SELECT userID, brandID, dealerID, locationID, dateTime, noOfRecords ,fileTypeID
                    FROM Audit_Log 
-                   WHERE brandID = @brandId and operation='upload' and userID=@userId and error_log='success'`;
+                   WHERE brandID = @brandId and operation='upload' and userID=@userId and error_log='success' `;
       
       if (dealerId !== null && dealerId !== undefined) {
           query += ` AND dealerID = @dealerId`;
@@ -1166,6 +1166,7 @@ case 28: {
     ) {
         query += ` AND locationID IS NULL`; // Filter records where locationID is NULL
     }
+    query+=` order by dateTime desc`
       const request = await pool.request().input('brandId', brandId).input('userId',userId);
       
       if (dealerId !== null && dealerId !== undefined) {
