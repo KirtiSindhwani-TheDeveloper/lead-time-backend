@@ -32,7 +32,7 @@ module.exports={
        try {
          let pool;
             pool = await sql.connect(config);
-           console.log("Connection Created");
+           //console.log("Connection Created");
            return pool
        } catch (error) {
            console.log("Error in Connection- ",error);

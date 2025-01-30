@@ -5,7 +5,7 @@ module.exports = {
   getLocationsBasedOnBrand: async function (req) {
     try {
       const pool = await sql.connect(config);
-      console.log("Connected to the database successfully!");
+      //console.log("Connected to the database successfully!");
       // Begin a transaction for inserting data
       const transaction = new sql.Transaction();
       await transaction.begin();
@@ -39,7 +39,7 @@ module.exports = {
   getLocations: async function (req) {
     try {
       const pool = await sql.connect(config);
-      console.log("Connected to the database successfully!");
+      //console.log("Connected to the database successfully!");
       // Begin a transaction for inserting data
       const transaction = new sql.Transaction();
       await transaction.begin();
@@ -58,7 +58,7 @@ module.exports = {
       // console.log("result ",result.recordset)
       // Commit the transaction
       await transaction.commit();
-      console.log("Data fetched successfully.");
+      //console.log("Data fetched successfully.");
       //   console.log("result ",result.recordset);
 
       return result.recordset;

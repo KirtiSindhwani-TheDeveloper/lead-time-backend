@@ -19,5 +19,14 @@ module.exports={
         catch(error){
             res.send(201).json({error:error.message})
         }
+    },
+    getBusinessVertical:async function(req,res){
+        try{
+            const result=await utilitiesService.getBusinessVertical(req);
+            res.send({status:200,data:result})
+        }
+        catch(error){
+            res.send(201).json({error:error.message})
+        }
     }
 }

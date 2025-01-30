@@ -17,4 +17,5 @@ router.post('/locations',locationController.getLocations)
 router.post('/selected-locations',locationController.getLocationsBasedOnBrand)
 router.get('/designations',utilitiesController.getDesignations)
 router.get('/roles',utilitiesController.getRoles)
+router.get('/business-vertical',utilitiesController.getBusinessVertical)
 module.exports=router;
