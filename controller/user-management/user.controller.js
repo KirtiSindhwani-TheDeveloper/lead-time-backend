@@ -4,6 +4,7 @@ module.exports={
         try{
             const result=await userService.getUsers();
             // console.log("result ",result)
+            
             return res.status(200).send({data:result})
         }
         catch(error){
