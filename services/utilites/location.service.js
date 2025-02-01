@@ -70,8 +70,8 @@ module.exports = {
 
   getLocationMaster: async function (req) {
     try {
-      brandId=req.brand_id;
-      console.log(brandId)
+      brandId=req;
+     // console.log(brandId)
      const pool=await connection.connectDB()
   //     const query = `
      
@@ -81,22 +81,24 @@ module.exports = {
   // inner join z_scope.dbo.Dealer_Master c on a.dealer_id=c.dealer_id 
   // where a.brand_id=@brandId
   //   `;
-    const query=` select b.vcbrand as Brand,c.vcName as Dealer,a.location as Location
-  from z_scope.dbo.locationInfo a 
-  inner join z_scope.dbo.Brand_Master b on a.brandID=b.bigid
-  inner join z_scope.dbo.Dealer_Master c on a.dealerID=c.bigid
-  where a.brandID=@brandId and a.status=1
-    `;
+  // select distinct brand as vcBrand from z_scope.dbo.locationInfo where BrandID=@brandId
+  //   const query=` select b.vcbrand as Brand,c.vcName as Dealer,a.location as Location
+  // from z_scope.dbo.locationInfo a 
+  // inner join z_scope.dbo.locationInfo b on a.brandID=b.bigid
+  // inner join z_scope.dbo.locationInfo c on a.dealerID=c.bigid
+  // where a.brandID=@brandId and a.status=1
+  //   `;
 
+    let query=`select brand, dealer,location from z_scope.dbo.locationInfo where brandID=@brandId and status=1`
       // Execute the insert query for each row
       const result = await pool
         .request().input('brandId',brandId)
         .query(query);
-      // console.log("result ",result)
+       //console.log("result ",result)
       return result;
     } catch (err) {
       console.log("error in fetching data", err.message);
-      await transaction.rollback();
+      //await transaction.rollback();
     }
   },
 };

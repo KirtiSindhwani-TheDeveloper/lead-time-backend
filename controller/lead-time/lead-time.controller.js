@@ -187,8 +187,9 @@ res.setHeader('Content-Type', 'application/json');
   downloadFormat:async function(req,res) {
     try {
 
+      brandId=req.body.brand_id;
       // console.log(req.body);
-      const data=await locationService.getLocationMaster(req.body);
+      const data=await locationService.getLocationMaster(brandId);
       //  console.log("data ",data)
        const result = await leadTimeService.downloadFormat({body:req.body,locationMaster:data});
       

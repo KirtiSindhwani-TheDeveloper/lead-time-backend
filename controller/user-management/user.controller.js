@@ -22,6 +22,16 @@ module.exports={
         }
     },
 
+    editUser:async function(req,res){
+
+        try{
+            const result=await userService.editUser(req.body);
+            return res.status(200).send({data:result})
+
+        }catch(error){
+            res.status(201).send({error:error.message})
+        }
+    },
     viewUser:async function(req,res){
         try{
             const result=await userService.allUsers(req.body);

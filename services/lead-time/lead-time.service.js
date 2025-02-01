@@ -971,7 +971,8 @@ module.exports = {
         resolve(buffer);
       } catch (error) {
         console.log("error ", error.message);
-        reject(error);
+        return error
+        // reject(error);
       }
     });
   },
@@ -1110,6 +1111,7 @@ case 28: {
 
 }
   catch(error){
+    console.log("error in download format service",error)
     return error.message
   }
 
