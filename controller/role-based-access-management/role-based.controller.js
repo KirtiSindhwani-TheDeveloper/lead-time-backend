@@ -13,19 +13,19 @@ module.exports={
     viewRole:async function(req,res){
         try{
             const result=await roleAccessService.viewRole(req.body,res);
-            res.status(200).json({message:'Role Created Successfully'})
+            res.status(200).json({data:result})
         }
         catch(error){
-            res.status(201).json({message:'Role is not able to create successfully',error:error.message })
+            res.status(201).json({message:'Role is not able to view successfully',error:error.message })
         }
     },
     editRole:async function(req,res){
         try{
             const result=await roleAccessService.editRole(req.body,res);
-            res.status(200).json({message:'Role Created Successfully'})
+            res.status(200).json({message:'Role Updated Successfully'})
         }
         catch(error){
-            res.status(201).json({message:'Role is not able to create successfully',error:error.message })
+            res.status(201).json({message:'Role is not able to update successfully',error:error.message })
         }
     }
 

@@ -57,9 +57,10 @@ module.exports={
         try{
             const pool=await connection.connectDB();
 
-            let query=`Select id,roleName,sims,hr,audit,gainer,it,others from role_master where status=1`;
+            let query=`Select id,role_name as name,sims,hr,audit,gainer,it,other from role_master where status=1`;
 
             let result=await pool.request().query(query);
+
             return result;
 
         }
@@ -72,15 +73,36 @@ module.exports={
         try{
             let id=req.id;
             let userId=req.userId;
-            let roleName=req.rolename;
-            let GAINER=req.GAINER;
-            let SIMS=req.SIMS;
-            let AUDIT=req.AUDIT;
-            let HR=req.HR;
-            let OTHER=req.OTHERS;
-            let IT=req.IT;
+            let roleName=req.name;
+            let GAINER=req.gainer;
+            let SIMS=req.sims;
+            let AUDIT=req.audit;
+            let HR=req.hr;
+            let OTHER=req.others;
+            let IT=req.it;
             let token=req.token;
-            let status=req.status;
+
+            
+            if(!GAINER){
+                GAINER=false;
+            }
+            if( !SIMS ){
+                SIMS=false;
+            }
+            if(!AUDIT ){
+                AUDIT=false;
+            }
+            if(!HR ){
+                HR=false;
+            }
+            if(!OTHER){
+                OTHER=false;
+            }
+            if(!IT){
+                IT=false;
+            }
+            //console.log("role ",OTHER,GAINER,HR,IT,AUDIT,SIMS)
+           // let status=req.status;
             // console.log(IT,SIMS,AUDIT,GAINER,OTHER,HR)
             const pool= await connection.connectDB();
             const clientIp = getClientIp(req);
@@ -99,12 +121,13 @@ module.exports={
                  IT = @IT, 
                  HR = @HR, 
                  OTHER = @OTHER
-                 status=@status
+                
              WHERE id = @id`;
+            // status=@status
       await pool.request().input('roleName',roleName)
       .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
-      .input('id',id).input('status',status).query(query);
-
+      .input('id',id).query(query);
+    //   .input('status',status)
       let query2=`Insert into Audit_log(roleName,userID,status
       ,SIMS
       ,AUDIT
@@ -119,7 +142,7 @@ module.exports={
         }
         catch(error){
            //console.log("error in role service ",error.message) ;
-           res.send({error:'error.message'});
+           res.send({error:'error.message',error});
         }
     }
 }
