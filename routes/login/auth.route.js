@@ -1,7 +1,7 @@
 // src/routes/auth.routes.js
 
 const express = require("express");
-const { auth,refreshTokenController,protectedRouteController } = require("../../controller/login/auth.controller");
+const { auth,refreshTokenController,protectedRouteController,verifyRouteController } = require("../../controller/login/auth.controller");
 
 const router = express.Router();
 
@@ -12,5 +12,6 @@ router.post("/auth", auth);
 // Route for refreshing access token
 router.post('/refresh', refreshTokenController);
 router.get('/protected', protectedRouteController);
+router.post('/verify', verifyRouteController);
 
 module.exports = router;

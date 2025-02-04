@@ -2,6 +2,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const connection=require('../../connection')
+const speakeasy = require('speakeasy');
+const qrcode = require('qrcode');
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.id, username: user.email }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRATION_TIME,
@@ -36,7 +38,7 @@ const generateAccessToken = (user) => {
 
 
 // Login Service
-const login = async (email, password,res) => {
+const login = async (email, password) => {
   // const user = userDatabase.find(u => u.username === username);
   pool=await connection.connectDB();
   const user = await findUserByUsername(pool,email,password);
@@ -126,7 +128,7 @@ const findUserByUsername = async (pool,email,password) => {
     
   try {
       //console.log("email ",email,password)
-      let query=`SELECT userId,name,designationId,roleId,emailId,mobileNo,password,status,added_on,added_by,scope_user_id FROM [user] WHERE emailId = @email and password=@password`
+      let query=`SELECT userId,name,designationId,roleId,emailId,mobileNo,password,added_on,added_by,scope_user_id FROM [user] WHERE emailId = @email and password=@password and status='Active'`
     const result = await pool.request()
       .input('email',  email)
       .input('password',password)
@@ -138,9 +140,41 @@ const findUserByUsername = async (pool,email,password) => {
     throw new Error('Database query failed');
   }
 };
+const generate2FA = async () => {
+  const secret = await speakeasy.generateSecret({ length: 20 });
+ // console.log("Generated secret: ", secret.base32);
+  // Generate a QR code URL that users will scan with Google Authenticator
+  return new Promise((resolve, reject) => {
+    qrcode.toDataURL(secret.otpauth_url, (err, data_url) => {
+      if (err) {
+        return reject('Error generating QR code');
+      }
+      resolve({ secret: secret.base32, data_url });
+    });
+  });
+}
+ async  function verify2FA (secret, token) {
 
+ // console.log("verify ",secret,token)
+  try{
+
+    const isValid = speakeasy.totp.verify({
+      secret,  // The secret generated and stored
+      encoding: 'base32',
+      token,   // The OTP entered by the user
+      window: 5, // Number of allowable time steps (default is 1, can be increased to allow some leeway) expires in 30*5 =150 seconds
+    });
+    //console.log("is valid ",isValid)
+  return isValid
+  }
+  catch(error){
+ console.log("error in verify in auth service ",error.message)
+  }
+};
 module.exports = {
   login,
   refreshAccessToken,
-  protectedRoute
+  protectedRoute,
+  generate2FA,
+  verify2FA
 };
