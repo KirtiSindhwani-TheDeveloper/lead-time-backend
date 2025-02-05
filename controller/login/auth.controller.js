@@ -71,4 +71,13 @@ const protectedRouteController = (req, res) => {
   }
 }
 
-module.exports = { auth,refreshTokenController ,protectedRouteController,verifyRouteController};
+const generateQRCode=async (req,res)=>{
+
+    try{
+    const { secret, data_url } = await authService.generate2FA();
+    res.status(200).json({ message: 'QR generate Successfully' ,qr:data_url,secret});
+  } catch (error) {
+    res.status(401).json({ message: error.message });
+  }
+}
+module.exports = { auth,refreshTokenController ,protectedRouteController,verifyRouteController,generateQRCode};

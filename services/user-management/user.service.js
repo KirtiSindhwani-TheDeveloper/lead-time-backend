@@ -2,6 +2,14 @@ const sql=require('mssql2');
 const connection=require('../../connection');
 const { password } = require('../../dbConfig');
 const crypto = require('crypto');
+const nodemailer=require('nodemailer');
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAILID,
+      pass: process.env.EMAILPASSWORD,
+    },
+  });
 const { getLocalIp, getPublicIp, getClientIp } = require("../getIP");
 module.exports={
     getUsers:async function(){
@@ -20,6 +28,7 @@ module.exports={
     createUser:async function(req){
         try{
             let userName=req.name;
+            let link=req?.link;
             let designationId=req.designation;
             let roleId=req.role;
             let email=req.email;
@@ -70,6 +79,24 @@ module.exports={
             await pool.request().input('addedBy',addedBy)
             .input('publicIp',publicIp).input('token',token).input('newUserIdFormatted',newUserIdFormatted)
             .query(query2)
+
+            console.log("link generated ",link)
+            let mailOptions = {
+                from: process.env.EMAILID, // Sender address
+                to: email, // List of receivers
+                subject: 'Create Password', // Subject line
+                html: `Dear ${userName},<br><br>
+                You can create your password with the link given below:<br>
+               Link for accessing:- ${link} `, // Plain text body
+                // html: '<b>This is a test email sent from Node.js using Nodemailer!</b>' // HTML body (optional)
+              };
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.log('Error: ' + error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
             return result;
         }
         catch(error){

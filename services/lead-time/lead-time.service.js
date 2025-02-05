@@ -1511,6 +1511,7 @@ async function insertInAuditLogs(pool,userId,dealer_id,location,brand_id,publicI
     // let query2 = `Insert into Audit_log(userID,dealerID,brandID,locationID,dateTime,operation,IP,noOfRecords,fileTypeID,error_log)
     //  values(@userId,@dealer_id, @brand_id, @location,@indiaTime,@operation,@publicIp,@rowCount,@fileTypeId,@error_status)`;
   
+    // console.log("indeiaTime",indiaTime)
     let query2 = `
       INSERT INTO Audit_log(userID, dealerID, brandID, locationID, dateTime, operation, IP, noOfRecords, fileTypeID, error_log)
       OUTPUT INSERTED.ID  -- This returns the inserted ID
