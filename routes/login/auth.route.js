@@ -1,7 +1,8 @@
 // src/routes/auth.routes.js
 
 const express = require("express");
-const { auth,refreshTokenController,protectedRouteController,verifyRouteController,generateQRCode } = require("../../controller/login/auth.controller");
+const { auth,refreshTokenController,protectedRouteController,verifyRouteController,
+    getEmails,generateQRCode,updatePasswordWhileCreatingUser } = require("../../controller/login/auth.controller");
 
 const router = express.Router();
 
@@ -13,5 +14,7 @@ router.post("/auth", auth);
 router.post('/refresh', refreshTokenController);
 router.get('/protected', protectedRouteController);
 router.post('/verify', verifyRouteController);
-router.get('/generate-qr',generateQRCode)
+router.get('/generate-qr',generateQRCode);
+router.post('/update-user',updatePasswordWhileCreatingUser);
+router.post('/check-email',getEmails)
 module.exports = router;

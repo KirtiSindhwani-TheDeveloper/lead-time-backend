@@ -81,13 +81,16 @@ module.exports={
             .query(query2)
 
             console.log("link generated ",link)
+            const expiryTime = Date.now() + (15 * 60 * 1000); // 15 minutes from now
+            const uniqueLink = `${link}?expiry=${expiryTime}`;
+           // console.log("unique link ",uniqueLink)
             let mailOptions = {
                 from: process.env.EMAILID, // Sender address
                 to: email, // List of receivers
                 subject: 'Create Password', // Subject line
                 html: `Dear ${userName},<br><br>
                 You can create your password with the link given below:<br>
-               Link for accessing:- ${link} `, // Plain text body
+               Link for accessing:- ${uniqueLink} `, // Plain text body
                 // html: '<b>This is a test email sent from Node.js using Nodemailer!</b>' // HTML body (optional)
               };
               transporter.sendMail(mailOptions, (error, info) => {

@@ -80,4 +80,28 @@ const generateQRCode=async (req,res)=>{
     res.status(401).json({ message: error.message });
   }
 }
-module.exports = { auth,refreshTokenController ,protectedRouteController,verifyRouteController,generateQRCode};
+
+const updatePasswordWhileCreatingUser=async (req,res)=>{
+
+  try{
+    const result=await authService.updatePasswordWhileCreatingUser(req.body);
+    res.status(200).json({message:'Successfully Updated',data:result})
+  }catch(error){
+    console.log("error ",error.message)
+    res.status(201).json({message:'Successfully Updated'})
+  }
+}
+
+const getEmails=async (req,res)=>{
+  try{
+    const result= await authService.getEmails(req);
+    return res.status(200).json({data:result});
+
+  }
+  catch(error){
+ console.log("error ",error.message)
+   return res.status(201).json({message:'Error ',error:error.message})
+  }
+}
+module.exports = { auth,refreshTokenController ,protectedRouteController,verifyRouteController,generateQRCode
+  ,getEmails,updatePasswordWhileCreatingUser};

@@ -162,7 +162,7 @@ const generate2FA = async () => {
       secret,  // The secret generated and stored
       encoding: 'base32',
       token,   // The OTP entered by the user
-      window: 5, // Number of allowable time steps (default is 1, can be increased to allow some leeway) expires in 30*5 =150 seconds
+      window: 2, // Number of allowable time steps (default is 1, can be increased to allow some leeway) expires in 30*5 =150 seconds
     });
     //console.log("is valid ",isValid)
   return isValid
@@ -171,10 +171,51 @@ const generate2FA = async () => {
  console.log("error in verify in auth service ",error.message)
   }
 };
+
+const updatePasswordWhileCreatingUser=async(req)=>{
+
+  try{
+    const pool=await connection.connectDB();
+    let email=req.email;
+    let secret=req.secretKey;
+    let password=req.password;
+    let query=`Update [user] set password=@password, secretKey=@secret , isGoogleAuthentication=1 where emailId=@email`;
+    await pool.request().input('secret',secret)
+    .input('email',email)
+    .input('password',password).query(query);
+  }
+  catch(error){
+
+    console.log("error in auth service updatepassword while creating user ",error.message)
+    return error;
+  }
+}
+
+const getEmails=async(req)=>{
+//   const { email } = req;
+  //console.log(req.email)
+  try {
+    // Connect to the SQL Server
+    const pool=await connection.connectDB();
+
+    // Query to check if the email exists
+    const result = await pool.request().query`
+      SELECT emailId,name  FROM [User]
+    `;
+
+    // Check if the email is already in the database
+    return result;
+  } catch (error) {
+    console.error('Error checking email:', error);
+    // return res.status(500).json({ message: 'Server error' });
+  }
+}
 module.exports = {
   login,
   refreshAccessToken,
   protectedRoute,
   generate2FA,
-  verify2FA
+  verify2FA,
+  getEmails,
+  updatePasswordWhileCreatingUser
 };

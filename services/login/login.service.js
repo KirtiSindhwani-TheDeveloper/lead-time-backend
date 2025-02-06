@@ -37,7 +37,7 @@ module.exports={
     },
     forgetPasswordService :async function(email) {
         try {
-            console.log("email ",email)
+           // console.log("email ",email)
           if (!email) {
             return { status: 400, data   : { error: 'Email is required.' } };
           }
