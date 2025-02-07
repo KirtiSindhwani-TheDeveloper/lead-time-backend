@@ -1,6 +1,8 @@
 const sql=require('mssql2');
 const connection=require('../../connection')
 const { getLocalIp, getPublicIp, getClientIp } = require("../getIP");
+const path=require('path');
+const AdmZip = require('adm-zip');
 module.exports={
 
     createRole:async function(req,res){
@@ -57,7 +59,7 @@ module.exports={
         try{
             const pool=await connection.connectDB();
 
-            let query=`Select id,role_name as name,sims,hr,audit,gainer,it,other from role_master where status=1`;
+            let query=`Select id,role_name as name,sims,hr,audit,gainer,it,other,status from role_master `;
 
             let result=await pool.request().query(query);
 
@@ -69,6 +71,7 @@ module.exports={
             return error;
         }
     },
+
     editRole:async function(req,res){
         try{
             let id=req.id;
@@ -144,5 +147,71 @@ module.exports={
            //console.log("error in role service ",error.message) ;
            res.send({error:'error.message',error});
         }
+    },
+
+    deleteRole:async function(req,res){
+         try{
+                    let userId=req.loginUserId;
+                    let id=req.id;
+                    //console.log(req,id)
+                    let status=req.status;
+                    let token=req.token;
+                    let query='';
+                    let clientIp = getClientIp(req);
+                    let localIp = getLocalIp();
+                    
+                    let publicIp = "Fetching public IP..."
+                    publicIp = await getPublicIp();
+                    const pool=await connection.connectDB();
+                    if(req.status=='Active')
+                    {
+                        status=1;
+                    }
+                    else{
+                        status=0
+                    }
+                    // if(status=='Inactive' || status=='inactive'){
+                        query=`Update role_master set status=@status where id=@id`;
+                    // }
+                    // else{
+                        // query=`Update [user] set status='Active' where userId=@id`
+                    //}
+                    const result=await pool.request()
+                    .input('id',id).input('status',status).query(query);
+                    let query2='';
+                    // console.log("----------",result)
+                    if(status=='Inactive' || status=='inactive'){
+        
+                         query2=`Insert into audit_log(userID,operation,IP,token,status) values(@userId,'delete user',@publicIp,@token,0)`
+                    }
+                    else{
+                        query2=`Insert into audit_log(userID,operation,IP,token,status) values(@userId,'delete user',@publicIp,@token,1)`
+                    }
+        
+                    await pool.request().
+                    input('userId',userId).input('publicIp',publicIp)
+                    .input('token',token).query(query2);
+                    return ;
+                }
+                catch(error){
+                    console.log("error in delete user service ",error.message)
+                }
+    },
+    
+    downloadRoleFormat:async function (req) {
+        
+        try{
+             const baseFolderPath = path.join(__dirname);
+             let filePaths ;
+             filePaths=path.join(baseFolderPath, 'Role-Access-Format', '');
+              const zip = new AdmZip();
+              zip.addLocalFile(filePaths);
+        }
+        catch(error){
+
+        }
+    },
+    uploadRoleFormat:async function(req){
+
     }
 }

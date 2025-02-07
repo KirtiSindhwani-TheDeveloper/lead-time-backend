@@ -27,6 +27,33 @@ module.exports={
         catch(error){
             res.status(201).json({message:'Role is not able to update successfully',error:error.message })
         }
+    },
+    deleteRole:async function(req,res){
+        try{
+            const result=await roleAccessService.deleteRole(req.body,res);
+            res.status(200).json({message:'Role Delete Successfully'})
+        }
+        catch(error){
+            res.status(201).json({message:'Role is not able to delete successfully',error:error.message })
+        }
+    },
+    downloadRoleFormat:async function(req,res) {
+        try{
+            const result=await roleAccessService.downloadRoleFormat(req);
+              res.send(result);
+        }
+        catch(error){
+            res.status(201).json({message:'Unable to download Role Format',error:error.message })
+        }
+    },
+    uploadRoleFormat:async function(req,res){
+        try{
+            const result=await roleAccessService.uploadRoleFormat(req.body,res);
+            res.status(200).json({message:'Role uploaded Successfully'})
+        }
+        catch(error){
+            res.status(201).json({message:'Unable to upload Format',error:error.message })
+        }
     }
 
 }

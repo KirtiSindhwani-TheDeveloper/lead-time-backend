@@ -1286,6 +1286,12 @@ case 28: {
         if (str < 0) {
           str = 0;
         }
+         // If the string can be interpreted as a valid date, convert it to a Date object
+      if (isValidDate(str)) {
+        const date = new Date(str);
+        //console.log("parsed date",toIST(date))
+        return toIST(date);  // Convert to IST
+      }
         convertedStr = String(str).replace(/'/g, "");
         // console.log("converted str ",str)
         return convertedStr.replace(/[]+/g, "").trim();
@@ -1697,6 +1703,27 @@ async function readExcelFile1(dealer,location,filePath) {
       if (str === undefined || str === null) {
         return null; // Replace undefined or null with a database-friendly null
       }
+
+      // if (typeof str === "number" && !isNaN(str)) {
+      //   // Excel serial numbers typically start from 25569 (January 1, 1900)
+      //   const excelEpoch = 25569;  // Excel date system starts on January 1, 1900
+      //   const validExcelSerialRange = (str >= excelEpoch && str <= 999999);  // A reasonable upper limit for dates
+    
+      //   if (validExcelSerialRange) {
+      //     const excelDate = new Date((str - excelEpoch) * 86400 * 1000);  // Convert to JavaScript Date
+      //     return toIST(excelDate);  // Convert to IST
+      //   } else {
+      //     // If it's a number but not a valid date serial number, treat it as a quantity
+      //     return str;  // Return the number as is (for quantities)
+      //   }
+      // }
+    
+      // If the string can be interpreted as a valid date, convert it to a Date object
+      if (isValidDate(str)) {
+        const date = new Date(str);
+        //console.log("parsed date",toIST(date))
+        return toIST(date);  // Convert to IST
+      }
       if (str < 0) {
         str = 0;
       }
@@ -1723,6 +1750,33 @@ async function readExcelFile1(dealer,location,filePath) {
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+function toIST(date) {
+  const options = {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: true
+  };
+
+  // const parsedDate=new Date(date).toLocaleString("en-IN", options);
+  // Using toLocaleString to format date in IST (Asia/Kolkata timezone)
+  const formattedDate = date.toISOString().split('T')[0];
+
+  const formatDate=new Date(formattedDate);
+    console.log(formattedDate);
+  return formatDate
+}
+
+function isValidDate(dateString) {
+  const parsedDate = new Date(dateString);
+ 
+  return !isNaN(parsedDate.getTime());  // If it's a valid date, getTime() will not return NaN
+} 
 // module.exports={readExcelFile1}
 
 // async function getFileTypeBasedOnBrand(req){

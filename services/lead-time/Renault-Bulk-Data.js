@@ -41,8 +41,8 @@ module.exports={
         const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
         const Location = location || item["location"]; 
         return [
-            item['transaction date'] !== "0-00-00" && item['transaction date'] !== null ? convertExcelSerialToIST(parseFloat(item['transaction date']),item) : null, // Transaction Date
-            item['supplier invoice date'] !== "0-00-00" && item['supplier invoice date'] !== null ? convertExcelSerialToIST(parseFloat(item['supplier invoice date']),item) : null, // Supplier Invoice Date
+            item['transaction date'] !== "0-00-00" && item['transaction date'] !== null ? item['transaction date'] : null, // Transaction Date
+            item['supplier invoice date'] !== "0-00-00" && item['supplier invoice date'] !== null ? item['supplier invoice date'] : null, // Supplier Invoice Date
             item['supplier type'], // Supplier Type
             item['dms order number'], // DMS Order Number
             shippedQuantity, // Shipped Quantity
@@ -130,7 +130,7 @@ module.exports={
             
                 item['supplier type'], // supplier type
                 item['po number'], // po number
-                item['order submission date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['order submission date']),item) : null, // order submission date
+                item['order submission date'] !== "0-00-00" ? item['order submission date']: null, // order submission date
                 item['order sub type'], // order sub type
                 item['order part number'], // order part number
                 item['order quantity'] !== null && !isNaN(parseFloat(item['order quantity'])) ? parseFloat(item['order quantity']) : null, // order quantity

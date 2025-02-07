@@ -12,6 +12,7 @@
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
+    "moment-timezone": "^0.5.47",
     "msnodesqlv8": "^4.4.0",
     "mssql": "^11.0.1",
     "mssql2": "^3.3.1",

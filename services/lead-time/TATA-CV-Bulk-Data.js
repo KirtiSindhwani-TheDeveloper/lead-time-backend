@@ -6,14 +6,12 @@ module.exports = {
         // console.log('----------------------it is executing');
         let isNullFound=false;
         let part_number=data[0]["part"];
+       // console.log("part number ",part_number)
         let brandId=17;
         let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
         const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
         //console.log("result in tata cv mrn",result)
         if(result.length==0){
-            // let tableNamePO='TATA_CV_Purchase_Line_Items_lead_time_latest_data'
-            // let query1=`TRUNCATE TABLE ${tableNamePO}`
-            // await pool.request().query(query1);
             return {poFailed:true}
         }
         for(let item of data){
@@ -54,17 +52,17 @@ module.exports = {
             
             // [Transaction Date] - Ensure it's a valid date
             item["transaction date"] !== "0-00-00" && item["transaction date"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['transaction date']),item)
+                ? item['transaction date']
                 : null, // [Transaction Date]
             
             // [purchase_order_date] - Ensure it's a valid date
             item["purchaseorderdate"] !== "0-00-00" && item["purchaseorderdate"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['purchaseorderdate']),item)
+                ? (item['purchaseorderdate'])
                 : null, // [purchase_order_date]
             
             // [Invoice_Date] - Ensure it's a valid date
             item["invoicedate"] !== "0-00-00" && item["invoicedate"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['invoicedate']),item) 
+                ? (item['invoicedate']) 
                 : null, // [Invoice_Date]
             
             // [Spares Order Type]

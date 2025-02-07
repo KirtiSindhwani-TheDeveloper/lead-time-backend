@@ -37,8 +37,8 @@ module.exports = {
       return [
         item["po no"], // Purchase Order Number
         item['part no'], // Part Number
-        item['invoice date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['invoice date'])) : null, // Invoice Date
-        item['gr date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['gr date'])): null, // GR Date
+        item['invoice date'] !== "0-00-00" ? item['invoice date'] : null, // Invoice Date
+        item['gr date'] !== "0-00-00" ? item['gr date']: null, // GR Date
         item['rcv qty'] !== null && !isNaN(parseFloat(item['rcv qty'])) ? item['rcv qty'] : null, // Received Quantity
         Dealer, // Dealer (assuming dealer is set earlier in your code)
         Location // Location (assuming location is set earlier in your code)
@@ -126,7 +126,7 @@ module.exports = {
         item['part name'], // Part Name
         item['quantity order'] !== null && !isNaN(parseFloat(item['quantity order'])) ? parseFloat(item['quantity order']) : null, // Quantity Order
         item['quantity current'] !== null && !isNaN(parseFloat(item['quantity current'])) ? parseFloat(item['quantity current']) : null, // Quantity Current
-        item['po date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['po date'])) : null, // PO Date
+        item['po date'] !== "0-00-00" ? item['po date'] : null, // PO Date
         item['pdc'], // PDC
         Dealer, // Dealer (assumed dealer is set earlier in your code)
         Location // Location (assumed location is set earlier in your code)

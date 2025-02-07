@@ -32,9 +32,9 @@ module.exports = {
     return [  
       item["purchase order number"],
       item['order status'],
-      convertExcelSerialToIST(parseFloat(item['order date'])),
-      item['invoice date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['invoice date'])) : null,
-      item['grn invoice date'] !== "0-00-00" ? convertExcelSerialToIST(parseFloat(item['grn invoice date'])) : null,
+      item['order date'],
+      item['invoice date'] !== "0-00-00" ? item['invoice date'] : null,
+      item['grn invoice date'] !== "0-00-00" ? item['grn invoice date'] : null,
       item['order subtype'],
       item['part number'],
       // Check if 'order quantity' is a valid number or is null

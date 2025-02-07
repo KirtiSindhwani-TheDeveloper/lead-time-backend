@@ -40,7 +40,7 @@ module.exports = {
                     
                     return [
                     // Adjust the mapping to fit the new column names
-                    item["po release date"] !== "0-00-00" && item["po release date"] !== null ? convertExcelSerialToIST(parseFloat(item['po release date']), item) : null, // Po Release Date
+                    item["po release date"] !== "0-00-00" && item["po release date"] !== null ? item['po release date'] : null, // Po Release Date
                     item["po type"], // Po type
                     item["po status"], // po Status
                     item["po number"], // Po Number
@@ -145,11 +145,11 @@ module.exports = {
             return [
             // Adjust field mappings to match new columns
             item["receipt date"] !== "0-00-00" && item["receipt date"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['receipt date']), item)
+                ? item['receipt date']
                 : null, // [receipt date]
             
             item["invoice date"] !== "0-00-00" && item["invoice date"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['invoice date']), item) 
+                ? item['invoice date']
                 : null, // [Invoice Date]
             
             item["po number"], // [PO Number]

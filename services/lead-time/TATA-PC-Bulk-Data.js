@@ -1,12 +1,14 @@
 const connection = require('../../connection');
 const sql=require('mssql2')
 const moment = require("moment");
+const momentTimeZone = require("moment-timezone");
 module.exports = {
     bulkPOInsertData: async function(data,pool, dealer, location,res) {
         // console.log('----------------------it is executing');
         let isNullFound=false;
         let part_number=data[0]["part"];
         let brandId=28;
+      
         let query=`Select brandid from z_scope.dbo.part_master where partnumber=@part_number and brandid=@brandId`;
         const result=await pool.request().input('part_number',part_number).input('brandId',brandId).query(query);
        // console.log("result in tata pc mrn",result)
@@ -26,8 +28,9 @@ module.exports = {
             }
         }
         if(!isNullFound){
-
+        
         const values = data.map(item => {
+            // console.log("item ",item)
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
             const Location = location || item["location"]; 
             return [
@@ -55,17 +58,17 @@ module.exports = {
             
             // [Transaction Date] - Ensure it's a valid date
             item["transaction date"] !== "0-00-00" && item["transaction date"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['transaction date']),item)
+                ? (item['transaction date'])
                 : null, // [Transaction Date]
             
             // [purchase_order_date] - Ensure it's a valid date
             item["purchaseorderdate"] !== "0-00-00" && item["purchaseorderdate"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['purchaseorderdate']),item)
+                ? item["purchaseorderdate"]
                 : null, // [purchase_order_date]
             
             // [Invoice_Date] - Ensure it's a valid date
             item["invoicedate"] !== "0-00-00" && item["invoicedate"] !== null 
-                ? convertExcelSerialToIST(parseFloat(item['invoicedate']),item) 
+                ? item["invoicedate"]
                 : null, // [Invoice_Date]
             
             // [Spares Order Type]
@@ -126,7 +129,7 @@ module.exports = {
             );
         });
     
-        const request = pool.request();
+        const request = await pool.request();
     
         // Execute the bulk insert
         try {
@@ -153,7 +156,11 @@ function excelSerialToDate(serialNumber) {
     const date = new Date(
       excelStartDate.getTime() + (serialNumber - 2) * millisecondsInADay
     );
-    return date;
+    
+   console.log("date ",date)
+   
+   
+   return date;
   }
   
   function convertToIST(date) {
@@ -168,6 +175,7 @@ function excelSerialToDate(serialNumber) {
   }
   
   function convertExcelSerialToIST(serialNumber,item) {
+    console.log("item",item)
     if (!serialNumber || isNaN(serialNumber)) {
         console.log(item)
       console.error("Invalid serial number:", serialNumber);
@@ -175,17 +183,22 @@ function excelSerialToDate(serialNumber) {
       return null;
     }
   
-    // Step 1: Convert Excel serial number to JavaScript Date
-    const date = excelSerialToDate(serialNumber);
+   
+    // const date = excelSerialToDate(serialNumber);
   
-    // Step 2: Adjust the time for IST (UTC +5:30)
-    const istDate = convertToIST(date);
-  
-    // Step 3: Format the date to a SQL-friendly string (YYYY-MM-DD)
-    const formattedDate = moment(istDate).format("YYYY-MM-DD");
-    // console.log("Converted date: ", formattedDate);
-  
-    formatDate=new Date(formattedDate);
 
-    return formatDate;
+    
+    // const istDate = convertToIST(date);
+  
+    // // Step 3: Format the date to a SQL-friendly string (YYYY-MM-DD)
+    // const formattedDate = moment(istDate).format("YYYY-MM-DD");
+    // // console.log("Converted date: ", formattedDate);
+    
+    // formatDate=new Date(formattedDate);
+//     let dateObj = new Date(serialNumber);
+
+//     // Ensure the date is in SQL Server compatible format (ISO 8601)
+//     let formattedDate = dateObj.toISOString(); 
+//   console.log("formatede ",formattedDate)
+//     return formattedDate;
   }
