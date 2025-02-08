@@ -48,8 +48,17 @@ module.exports={
     },
     uploadRoleFormat:async function(req,res){
         try{
-            const result=await roleAccessService.uploadRoleFormat(req.body,res);
+            const result=await roleAccessService.uploadRoleFormat(req.body);
             res.status(200).json({message:'Role uploaded Successfully'})
+        }
+        catch(error){
+            res.status(201).json({message:'Unable to upload Format',error:error.message })
+        }
+    },
+    getAccessSettingBasedOnRole:async function(req,res){
+        try{
+            const result=await roleAccessService.getAccessSettingsBasedOnRole(req.body);
+            res.status(200).json({message:'Access Settings are successfully fetched..',data:result})
         }
         catch(error){
             res.status(201).json({message:'Unable to upload Format',error:error.message })

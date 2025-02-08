@@ -52,8 +52,8 @@ module.exports = {
     // Updated columns with the new names and data types
     table.columns.add('Po No', sql.VarChar(50), { nullable: true });  // VarChar(50) for Po No
     table.columns.add('Part No', sql.VarChar(50), { nullable: true }); // VarChar(50) for Part No
-    table.columns.add('Invoice Date', sql.DateTime, { nullable: true }); // DateTime for Invoice Date
-    table.columns.add('GR Date', sql.DateTime, { nullable: true }); // DateTime for GR Date
+    table.columns.add('Invoice Date', sql.Date, { nullable: true }); // DateTime for Invoice Date
+    table.columns.add('GR Date', sql.Date, { nullable: true }); // DateTime for GR Date
     table.columns.add('RCV Qty', sql.Float, { nullable: true }); // Float for Received Quantity
     table.columns.add('Dealer', sql.VarChar(100), { nullable: true }); // VarChar(100) for Dealer
     table.columns.add('Location', sql.VarChar(100), { nullable: true }); // VarChar(100) for Location

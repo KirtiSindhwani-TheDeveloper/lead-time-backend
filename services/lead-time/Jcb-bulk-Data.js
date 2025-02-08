@@ -141,8 +141,8 @@ module.exports = {
         // Define columns using the exact column names you provided
         table.columns.add('Branch', sql.VarChar(250), { nullable: true }); // [Branch]
         table.columns.add('Order No', sql.VarChar(50), { nullable: true }); // [Order No]
-        table.columns.add('JcbInvDt', sql.DateTime, { nullable: true }); // [JcbInvDt]
-        table.columns.add('GRN Date', sql.DateTime, { nullable: true }); // [GRN Date]
+        table.columns.add('JcbInvDt', sql.Date, { nullable: true }); // [JcbInvDt]
+        table.columns.add('GRN Date', sql.Date, { nullable: true }); // [GRN Date]
         table.columns.add('Part Code', sql.VarChar(50), { nullable: true }); // [Part Code]
         table.columns.add('Qty', sql.Float, { nullable: true }); // [Qty]
         table.columns.add('Dealer', sql.VarChar(100), { nullable: true }); // [Dealer]

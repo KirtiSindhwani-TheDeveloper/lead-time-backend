@@ -139,8 +139,8 @@ module.exports = {
         // Define columns based on the target table schema
         table.columns.add('Po No', sql.VarChar(50), { nullable: true }); // Po No
         table.columns.add('Part No', sql.VarChar(100), { nullable: true }); // Part No
-        table.columns.add('Invoice Date', sql.DateTime, { nullable: true }); // Invoice Date
-        table.columns.add('GR Date', sql.DateTime, { nullable: true }); // GR Date
+        table.columns.add('Invoice Date', sql.Date, { nullable: true }); // Invoice Date
+        table.columns.add('GR Date', sql.Date, { nullable: true }); // GR Date
         table.columns.add('RCV QTY', sql.Float, { nullable: true }); // RCV QTY
         table.columns.add('Dealer', sql.VarChar(100), { nullable: true }); // Dealer
         table.columns.add('Location', sql.VarChar(100), { nullable: true }); // Location

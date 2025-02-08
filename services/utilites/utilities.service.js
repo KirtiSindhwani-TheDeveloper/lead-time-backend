@@ -30,9 +30,7 @@ module.exports={
     getBusinessVertical:async function(req){
         try{
             let pool=await connection.connectDB();
-            let query=`SELECT business_vertical, MIN(id) AS id
-FROM designation_master
-GROUP BY business_vertical;`;
+            let query=`SELECT id,business_vertical from business_vertical_master`;
 
            let result= await pool.request().query(query);
             return result;

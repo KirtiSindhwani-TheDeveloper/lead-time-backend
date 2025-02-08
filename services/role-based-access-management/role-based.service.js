@@ -197,7 +197,7 @@ module.exports={
                     console.log("error in delete user service ",error.message)
                 }
     },
-    
+
     downloadRoleFormat:async function (req) {
         
         try{
@@ -211,7 +211,24 @@ module.exports={
 
         }
     },
+
     uploadRoleFormat:async function(req){
 
+    },
+    getAccessSettingsBasedOnRole:async function(req){
+        try{
+
+            const pool=await connection.connectDB();
+            let vertical_ids=req.body.vertical_ids;
+
+
+            const query = `SELECT * FROM module_master WHERE business_vertical_id IN (@ids)`;
+            const result=await pool.request().input('ids',vertical_ids).query(query);
+            return result;
+        }
+        catch(error){
+            console.log("errror in role service ",error.message)
+            return error;
+        }
     }
 }

@@ -1,6 +1,8 @@
 const sql=require('mssql2');
 const config=require('../../dbConfig');
 const XLSX = require("xlsx");
+const moment=require('moment');
+const { connect } = require('tedious');
 module.exports={
   readExcelFile:async function (filePath) {
     try {
@@ -29,7 +31,7 @@ module.exports={
       const cleanedRows = cleanedData .filter(row => row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== ''))  // Ignore rows with blank cells
       .map((row) => {
         return cleanedHeaders.reduce((acc, header, index) => {
-          acc[header] = cleanRowData(row[index]); // Clean the data values as well
+          acc[header] = cleanRowData(row[index],header); // Clean the data values as well
           return acc;
         }, {});
       });
@@ -40,7 +42,7 @@ module.exports={
         str2 = convertedStr.replace(/[\?#&_\-+=}{[\]!@`~$%^'.()\/\r\n?]+/g, "").trim()// Remove spaces, ?, and #,-,...etc
         return str2
       }
-      function cleanRowData(str) {
+      function cleanRowData(str,header) {
         if (str === undefined || str === null) {
           return null;  // Replace undefined or null with a database-friendly null
         }
@@ -52,7 +54,7 @@ module.exports={
       
           if (validExcelSerialRange) {
             const excelDate = new Date((str - excelEpoch) * 86400 * 1000);  // Convert to JavaScript Date
-            return toIST(excelDate);  // Convert to IST
+            return excelDate; 
           } else {
             // If it's a number but not a valid date serial number, treat it as a quantity
             str+=''
@@ -60,53 +62,25 @@ module.exports={
           }
         }
       
-        // If the string can be interpreted as a valid date, convert it to a Date object
-        if (isValidDate(str)) {
-          const date = new Date(str);
-          //console.log("parsed date",toIST(date))
-          return toIST(date);  // Convert to IST
-        }
-        if(str<0 )
+       
+       // convertedStr = String(str).replace(/'/g, "");
+        convertedStr = String(str)
+      if (header == "location" || header=='dealer') {
+        // console.log(convertedStr)
+        return convertedStr.trim();  // Return the string as is for 'dealer location'
+    }
+    else{
+          convertedStr= convertedStr.replace(/[^a-zA-Z0-9\s]/g, "")
+    }
+      if(str<0 )
         {
           str=0;
         }
-        convertedStr = String(str).replace(/'/g, "");
-        // console.log("converted str ",str)
-         convertedStr.replace(/[]+/g, "").trim();
-        //  extra line added on 21 jan 
-        convertedStr = convertedStr.replace(/\/.*?\//g, "").replace(/\//g, "");
-       convertedStr= convertedStr.replace(/[^a-zA-Z0-9\s]/g, "") // Remove all non-alphanumeric characters and symbols
-        .trim(); // Remove leading/trailing spaces
-        return convertedStr
+     // Remove all non-alphanumeric characters and symbols
+        // Remove leading/trailing spaces
+        return convertedStr.trim()
       }
   
-      function toIST(date) {
-        const options = {
-          timeZone: "Asia/Kolkata",
-          year: "numeric",
-          month: "numeric",
-          day: "numeric",
-          hour: "numeric",
-          minute: "numeric",
-          second: "numeric",
-          hour12: true
-        };
-      
-        // const parsedDate=new Date(date).toLocaleString("en-IN", options);
-        // Using toLocaleString to format date in IST (Asia/Kolkata timezone)
-        const formattedDate = date.toISOString().split('T')[0];
-
-        const formatDate=new Date(formattedDate);
-        //console.log(formattedDate);
-        return formatDate
-      }
-      
-      function isValidDate(dateString) {
-        const parsedDate = new Date(dateString);
-       
-        return !isNaN(parsedDate.getTime());  // If it's a valid date, getTime() will not return NaN
-      } 
-
       // Initialize an object to store sheet data
      const result = {
         headers: cleanedHeaders,
@@ -215,12 +189,12 @@ module.exports={
   }
   
   // Function to clean row data (e.g., remove unwanted characters, handle null/undefined values)
-  function cleanRowData(str) {
-    if (str === undefined || str === null) {
-      return null;  // Replace undefined or null with a database-friendly null
-    }
-    if (str < 0) {
-      str = 0;  // Handle negative values by setting to zero
-    }
-    return String(str).replace(/'/g, "").trim();  // Clean unwanted characters and trim
-  }
+  // function cleanRowData(str) {
+  //   if (str === undefined || str === null) {
+  //     return null;  // Replace undefined or null with a database-friendly null
+  //   }
+  //   if (str < 0) {
+  //     str = 0;  // Handle negative values by setting to zero
+  //   }
+  //   return String(str).replace(/'/g, "").trim();  // Clean unwanted characters and trim
+  // }

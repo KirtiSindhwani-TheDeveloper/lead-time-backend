@@ -632,7 +632,7 @@ module.exports = {
     let id;
     let insertedId;
     if(insertResponse?.poFailed){
-      console.log("res po ",insertResponse)
+     // console.log("res po ",insertResponse)
       id=await insertInAuditLogs(pool,req.userId,req.dealer_id,req.location,req.brand_id,publicIp,rowCount,req.fileTypeId,'Part no cannot be found ');
        insertedId=id;
        return {insertResponse,insertedId}
@@ -1257,7 +1257,7 @@ case 28: {
         ) // Ignore rows with blank cells
         .map((row) => {
           return cleanedHeaders.reduce((acc, header, index) => {
-            acc[header] = cleanRowData(row[index]); // Clean the data values as well
+            acc[header] = cleanRowData(row[index],header); // Clean the data values as well
             return acc;
           }, {});
         });
@@ -1286,15 +1286,32 @@ case 28: {
         if (str < 0) {
           str = 0;
         }
-         // If the string can be interpreted as a valid date, convert it to a Date object
-      if (isValidDate(str)) {
-        const date = new Date(str);
-        //console.log("parsed date",toIST(date))
-        return toIST(date);  // Convert to IST
-      }
+        if (typeof str === "number" && !isNaN(str)) {
+          // Excel serial numbers typically start from 25569 (January 1, 1900)
+          const excelEpoch = 25569;  // Excel date system starts on January 1, 1900
+          const validExcelSerialRange = (str >= excelEpoch && str <= 999999);  // A reasonable upper limit for dates
+      
+          if (validExcelSerialRange) {
+            const excelDate = new Date((str - excelEpoch) * 86400 * 1000);  // Convert to JavaScript Date
+            return excelDate; 
+          } else {
+            // If it's a number but not a valid date serial number, treat it as a quantity
+            str+=''
+            return str;  // Return the number as is (for quantities)
+          }
+        }
+     
         convertedStr = String(str).replace(/'/g, "");
         // console.log("converted str ",str)
-        return convertedStr.replace(/[]+/g, "").trim();
+        convertedStr = String(str)
+        if (header == "location" || header=='dealer') {
+          // console.log(convertedStr)
+          return convertedStr.trim();  // Return the string as is for 'dealer location'
+      }
+      else{
+            convertedStr= convertedStr.replace(/[^a-zA-Z0-9\s]/g, "")
+      }
+        return convertedStr.trim();
       }
   
       // Initialize an object to store sheet data
@@ -1537,7 +1554,7 @@ async function insertInAuditLogs(pool,userId,dealer_id,location,brand_id,publicI
     .input('error_status',error_status)
       .query(query2);
   
-      console.log(result1)
+      //console.log(result1)
       const insertedId = result1[0].ID;  // Adjust based on the column name, e.g., 'ID' or 'Audit_log_ID'
   
       // console.log(`Logs inserted successfully. Inserted ID: ${insertedId}`);
@@ -1677,7 +1694,7 @@ async function readExcelFile1(dealer,location,filePath) {
       ) // Ignore rows with blank cells
       .map((row) => {
         return cleanedHeaders.reduce((acc, header, index) => {
-          acc[header] = cleanRowData(row[index]); // Clean the data values as well
+          acc[header] = cleanRowData(row[index],header); // Clean the data values as well
           return acc;
         }, {});
       });
@@ -1699,41 +1716,46 @@ async function readExcelFile1(dealer,location,filePath) {
         .trim(); // Remove spaces, ?, and #,-,...etc
       return str2;
     }
-    function cleanRowData(str) {
+   
+    function cleanRowData(str,header) {
       if (str === undefined || str === null) {
-        return null; // Replace undefined or null with a database-friendly null
+        return null;  // Replace undefined or null with a database-friendly null
       }
 
-      // if (typeof str === "number" && !isNaN(str)) {
-      //   // Excel serial numbers typically start from 25569 (January 1, 1900)
-      //   const excelEpoch = 25569;  // Excel date system starts on January 1, 1900
-      //   const validExcelSerialRange = (str >= excelEpoch && str <= 999999);  // A reasonable upper limit for dates
+      if (typeof str === "number" && !isNaN(str)) {
+        // Excel serial numbers typically start from 25569 (January 1, 1900)
+        const excelEpoch = 25569;  // Excel date system starts on January 1, 1900
+        const validExcelSerialRange = (str >= excelEpoch && str <= 999999);  // A reasonable upper limit for dates
     
-      //   if (validExcelSerialRange) {
-      //     const excelDate = new Date((str - excelEpoch) * 86400 * 1000);  // Convert to JavaScript Date
-      //     return toIST(excelDate);  // Convert to IST
-      //   } else {
-      //     // If it's a number but not a valid date serial number, treat it as a quantity
-      //     return str;  // Return the number as is (for quantities)
-      //   }
-      // }
+        if (validExcelSerialRange) {
+          const excelDate = new Date((str - excelEpoch) * 86400 * 1000);  // Convert to JavaScript Date
+          return excelDate; 
+        } else {
+          // If it's a number but not a valid date serial number, treat it as a quantity
+          str+=''
+          return str;  // Return the number as is (for quantities)
+        }
+      }
     
-      // If the string can be interpreted as a valid date, convert it to a Date object
-      if (isValidDate(str)) {
-        const date = new Date(str);
-        //console.log("parsed date",toIST(date))
-        return toIST(date);  // Convert to IST
+     
+     // convertedStr = String(str).replace(/'/g, "");
+      convertedStr = String(str)
+    if (header == "location" || header=='dealer') {
+      // console.log(convertedStr)
+      return convertedStr.trim();  // Return the string as is for 'dealer location'
+  }
+  else{
+        convertedStr= convertedStr.replace(/[^a-zA-Z0-9\s]/g, "")
+  }
+    if(str<0 )
+      {
+        str=0;
       }
-      if (str < 0) {
-        str = 0;
-      }
-      convertedStr = String(str).replace(/'/g, "");
-      // console.log("converted str ",str)
-       convertedStr.replace(/[]+/g, "").trim();
-      convertedStr= convertedStr.replace(/[^a-zA-Z0-9\s]/g, "") // Remove all non-alphanumeric characters and symbols
-      .trim(); // Remove leading/trailing spaces
-      return convertedStr;
+   // Remove all non-alphanumeric characters and symbols
+      // Remove leading/trailing spaces
+      return convertedStr.trim()
     }
+    
 
     // Initialize an object to store sheet data
     const result = {
@@ -1751,32 +1773,9 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function toIST(date) {
-  const options = {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-    hour12: true
-  };
 
-  // const parsedDate=new Date(date).toLocaleString("en-IN", options);
-  // Using toLocaleString to format date in IST (Asia/Kolkata timezone)
-  const formattedDate = date.toISOString().split('T')[0];
 
-  const formatDate=new Date(formattedDate);
-    console.log(formattedDate);
-  return formatDate
-}
 
-function isValidDate(dateString) {
-  const parsedDate = new Date(dateString);
- 
-  return !isNaN(parsedDate.getTime());  // If it's a valid date, getTime() will not return NaN
-} 
 // module.exports={readExcelFile1}
 
 // async function getFileTypeBasedOnBrand(req){

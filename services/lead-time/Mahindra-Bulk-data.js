@@ -35,6 +35,7 @@ module.exports = {
             if(!isNullFound){
             const values = data.map(item => 
                 {
+                   // console.log("item in po",item)
                     const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
                     const Location = location || item["location"]; 
                     
@@ -58,7 +59,7 @@ module.exports = {
                 table.create = false;
             
                 // Define columns exactly as per your provided schema
-                table.columns.add('Po Release Date', sql.DateTime, { nullable: true }); // Po Release Date
+                table.columns.add('Po Release Date', sql.Date, { nullable: true }); // Po Release Date
                 table.columns.add('Po type', sql.VarChar(355), { nullable: true }); // Po type
                 table.columns.add('po Status', sql.VarChar(250), { nullable: true }); // po Status
                 table.columns.add('Po Number', sql.VarChar(50), { nullable: true }); // Po Number
@@ -139,6 +140,7 @@ module.exports = {
 
         const values = data.map(item => 
         {
+           
             const Dealer = dealer || item["dealer"];  // Use provided dealer or item["dealer"]
             const Location = location || item["location"]; 
         
@@ -175,8 +177,8 @@ module.exports = {
         table.create = false;
     
         // Define columns using the exact column names from your new schema
-        table.columns.add('receipt date', sql.DateTime, { nullable: true }); // [receipt date]
-        table.columns.add('Invoice Date', sql.DateTime, { nullable: true }); // [Invoice Date]
+        table.columns.add('receipt date', sql.Date, { nullable: true }); // [receipt date]
+        table.columns.add('Invoice Date', sql.Date, { nullable: true }); // [Invoice Date]
         table.columns.add('PO Number', sql.VarChar(155), { nullable: true }); // [PO Number]
         table.columns.add('party type', sql.VarChar(255), { nullable: true }); // [party type]
         table.columns.add('Part Number', sql.VarChar(100), { nullable: true }); // [Part Number]
