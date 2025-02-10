@@ -61,7 +61,16 @@ module.exports={
             res.status(200).json({message:'Access Settings are successfully fetched..',data:result})
         }
         catch(error){
-            res.status(201).json({message:'Unable to upload Format',error:error.message })
+            res.status(201).json({message:'Unable to get access settings based on role',error:error.message })
+        }
+    },
+    getEditAccessSettingBasedOnRole:async function(req,res){
+        try{
+            const result=await roleAccessService.getEditAccessSettingsBasedOnRole(req.body);
+            res.status(200).json({message:'Access Settings are successfully fetched..',data:result})
+        }
+        catch(error){
+            res.status(201).json({message:'Unable to get edit access settings',error:error.message })
         }
     }
 
