@@ -49,7 +49,7 @@ const login = async (email, password) => {
 
 findUserById=async (userId)=>{
     try {
-      console.log("user id ",userId)
+     // console.log("user id ",userId)
       pool=await connection.connectDB();
     let query=`SELECT * FROM [user] WHERE userId=@userId`
   const result = await pool.request()
@@ -128,12 +128,12 @@ const findUserByUsername = async (pool,email,password) => {
     
   try {
       //console.log("email ",email,password)
-      let query=`SELECT userId,name,designationId,roleId,emailId,mobileNo,password,added_on,added_by,scope_user_id FROM [user] WHERE emailId = @email and password=@password and status='Active'`
+      let query=`SELECT userId,name,designationId,roleId,emailId,mobileNo,password,added_on,added_by,scope_user_id,secretKey FROM [user] WHERE emailId = @email and password=@password and status='Active'`
     const result = await pool.request()
       .input('email',  email)
       .input('password',password)
       .query(query);
-  //   console.log("result ",result)
+  //  console.log("result ",result)
     return result[0] || null;  // Return the first record, or null if not found
   } catch (err) {
     console.error('Error querying the database:', err);
@@ -153,10 +153,16 @@ const generate2FA = async () => {
     });
   });
 }
- async  function verify2FA (secret, token) {
+ async  function verify2FA (secret, token,userId) {
 
- // console.log("verify ",secret,token)
+  //console.log("verify ",secret,token,userId)
   try{
+    const pool=await connection.connectDB();
+
+    let query=`Update [user] set secretKey=@secret ,token=@token where userId=@userId;`
+
+    await pool.request().input('userId',userId)
+    .input('token',token).input('secret',secret).query(query);
 
     const isValid = speakeasy.totp.verify({
       secret,  // The secret generated and stored

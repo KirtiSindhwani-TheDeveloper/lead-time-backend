@@ -18,6 +18,7 @@ module.exports={
             let IT=req.IT;
             let token=req.token;
             let modules=req.modules;
+            
             const pool= await connection.connectDB();
             const clientIp = getClientIp(req);
             const localIp = getLocalIp();
@@ -26,6 +27,19 @@ module.exports={
             publicIp = await getPublicIp();
             // console.log("public ip ", publicIp);
             //console.log("modules ",modules[0].submodules)
+            let query=`Insert into role_master(role_name,createdby,status
+            ,SIMS
+            ,AUDIT
+            ,GAINER
+            ,IT
+            ,HR
+            ,OTHER) output inserted.id values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER)`;
+            const result=await pool.request().input('roleName',roleName)
+            .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR)
+            .input('OTHER',OTHER)
+            .query(query);
+             let insertedId=result[0].id;
+            // console.log("insertedId ",insertedId)
             for(let item of modules){
 
                 for(let submodule of item.submodules){
@@ -36,22 +50,14 @@ module.exports={
                     let add1=submodule.add1;
                     let edit1=submodule.edit1;
                     let delete1=submodule.delete1;
-                    let query=`Insert into role_master(role_name,createdby,status
-                    ,SIMS
-                    ,AUDIT
-                    ,GAINER
-                    ,IT
-                    ,HR
-                    ,OTHER,view1,edit,add1,delete1,moduleParentId,page_id) output inserted.id values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER,
-                    @view1,@edit1,@add1,@delete1,@parentId,@pageId)`;
-              
-                    const result=await pool.request().input('roleName',roleName)
-                    .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR)
-                    .input('OTHER',OTHER).input('view1',view1).input('edit1',edit1).input('add1',add1).input('delete1',delete1)
-                    .input('parentId',parentId).input('pageId',pageId)
-                    .query(query);
-                     let insertedId=result[0].id;
+                    let query3=`Insert into role_module_mapping(role_id,module_id,view1,edit1,add1,delete1,moduleParentId) values(@insertedId,@pageId,
+                    @view1,@edit1,@add1,@delete1,@parentId)`;
 
+                   await pool.request().input('insertedId',insertedId).input('pageId',pageId).input('view1',view1).input('edit1',edit1)
+                   .input('add1',add1).input('delete1',delete1)
+                   .input('parentId',parentId)
+                   .query(query3);
+            
                      //console.log("inseerted id ",result,insertedId)
 
                     
@@ -61,15 +67,14 @@ module.exports={
                     ,GAINER
                     ,IT
                     ,HR
-                    ,OTHERS,IP,token,operation,moduleParentId,pageId) values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,
-                    'role creation',@parentId,@pageId)`;
+                    ,OTHERS,IP,token,operation,moduleParentId,pageId,roleId) values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,
+                    'role creation',@parentId,@pageId,@insertedId)`;
               
                     await pool.request().input('roleName',roleName)
                     .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
-                    .input('publicIp',publicIp).input('token',token).input('parentId',parentId).input('pageId',pageId).query(query2);
-                   let query3=`Insert into role_module_mapping(role_id,module_id) values(@insertedId,@pageId)`;
-
-                   await pool.request().input('insertedId',insertedId).input('pageId',pageId).query(query3);
+                    .input('publicIp',publicIp).input('token',token).input('parentId',parentId).input('pageId',pageId)
+                    .input('insertedId',insertedId).query(query2);
+                   
                 }
             }
             // console.log(IT,SIMS,AUDIT,GAINER,OTHER,HR)
@@ -99,10 +104,11 @@ module.exports={
         }
     },
 
-    editRole:async function(req,res){
+    editRole:async function(req){
         try{
             let id=req.id;
             let userId=req.userId;
+            let roleId=req.roleId;
             let roleName=req.name;
             let GAINER=req.gainer;
             let SIMS=req.sims;
@@ -112,8 +118,8 @@ module.exports={
             let IT=req.it;
             let token=req.token;
             let modules=req.modules;
-
-            console.log("modules",modules)
+            let status=req.status;
+            //console.log("modules",modules)
             
             if(!GAINER){
                 GAINER=false;
@@ -143,10 +149,11 @@ module.exports={
             let publicIp = "Fetching public IP..."
             publicIp = await getPublicIp();
             // console.log("public ip ", publicIp);
+
             let query = `UPDATE role_master 
              SET role_name = @roleName, 
                  createdby = @userId, 
-                 status = 1,
+                 status = @status,
                  SIMS = @SIMS, 
                  AUDIT = @AUDIT, 
                  GAINER = @GAINER, 
@@ -156,25 +163,65 @@ module.exports={
                 
              WHERE id = @id`;
             // status=@status
-      await pool.request().input('roleName',roleName)
+      await pool.request().input('roleName',roleName).input('status',status)
       .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
-      .input('id',id).query(query);
-    //   .input('status',status)
+      .input('id',id).input('status',status).query(query);
+
+      let query3=`Select module_id from role_module_mapping where role_id=@roleId`;
+
+     const resultQuery=await pool.request().input('roleId',roleId).query(query3);
+     let query34=''
+    console.log("result ---------",resultQuery)
+
+            for(let item of modules){
+                for(let submodule of item.submodules){
+                    let pageId=submodule.id;
+                    let parentId=submodule.parentId;
+                    let view1=submodule.view1;
+                    let add1=submodule.add1;
+                    let edit1=submodule.edit1;
+                    let delete1=submodule.delete1;
+                    
+                    const existingModuleIndex = resultQuery.findIndex(module => module.module_id === pageId);
+                    console.log("existing index ",existingModuleIndex)
+                    if(existingModuleIndex==-1){
+                         query34=`Insert into role_module_mapping(role_id,module_id,view1,add1,delete1,edit1,moduleParentId) 
+                        values(@roleId,@pageId,@view1,@add1,@delete1,@edit1,@parentId)`;
+                       
+                    }
+                    else{
+                        query34=`Update role_module_mapping 
+                        set module_id=@parentId,
+                        view1=@view1,
+                        delete1=@delete1,
+                        edit1=@edit1,
+                        add1=@add1
+                        where role_id=@roleId`
+                        
+                    }
+                    const res=await pool.request().input('roleId',roleId).input('pageId',pageId)
+                    .input('parentId',parentId).input('view1',view1).input('add1',add1).input('delete1',delete1)
+                    .input('edit1',edit1).query(query34);
+
+                    console.log("res ",res)
+                }
+            }        
+  
       let query2=`Insert into Audit_log(roleName,userID,status
       ,SIMS
       ,AUDIT
       ,GAINER
       ,IT
       ,HR
-      ,OTHERS,IP,token,operation) values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,'update role')`;
+      ,OTHERS,IP,token,operation)values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,'update role')`;
 
       await pool.request().input('roleName',roleName)
       .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
       .input('publicIp',publicIp).input('token',token).query(query2);
         }
         catch(error){
-           //console.log("error in role service ",error.message) ;
-           res.send({error:'error.message',error});
+           console.log("error in role service ",error.message) ;
+          // res.send({error:'error.message',error});
         }
     },
 
@@ -284,9 +331,9 @@ module.exports={
             
                 const query = `SELECT * FROM module_master WHERE business_vertical_id IN (${verticalIdsString})`;
                 const result1 = await pool.request().query(query);
-                console.log("resul1 ",result1);
+                //console.log("resul1 ",result1);
                     let query1 = `
-                select mm.module_name, mm.parentId, rm.view1, rm.edit, rm.add1, rm.delete1
+                select mm.module_name, mm.parentId, rmm.view1, rmm.edit1, rmm.add1, rmm.delete1
                 from role_master rm
                 join role_module_mapping rmm on rmm.role_id = rm.id
                 join module_master mm on mm.id = rmm.module_id

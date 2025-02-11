@@ -22,12 +22,12 @@ const auth = async (req, res) => {
   //     // maxAge: 7 * 24 * 60 * 60 * 1000,
   //     // sameSite: 'None',
   // });
-  const { secret, data_url } = await authService.generate2FA();
-  user.secret = secret; // Store the secret in user data or a session
+  // const { secret, data_url } = await authService.generate2FA();
+  // user.secret = secret; // Store the secret in user data or a session
   
   // res.render('verifyPage', { data_url });
   // res.json({ qrCodeUrl: data_url, secret });
-  res.status(200).json({ message: 'Login successful' ,accessToken,refreshToken,user,qr:data_url,secret});
+  res.status(200).json({ message: 'Login successful' ,accessToken,refreshToken,user});
   } catch (error) {
     res.status(401).json({ message: error.message });
   }
@@ -57,12 +57,14 @@ const protectedRouteController = (req, res) => {
     res.status(401).json({ message: error.message });
   }
 };
+
  const verifyRouteController=async (req,res)=>{
   const { token } = req.body;
+  const userId=req.body.userId;
 // console.log(" token ",token)
   const user = { secret: req.body.secret }; // Retrieve user secret from your session or DB
 
-  const isValid = await authService.verify2FA(user.secret, token);
+  const isValid = await authService.verify2FA(user.secret, token,userId);
   //console.log("is valid in verify auth controller ",isValid)
   if (isValid) {
     return res.json({message:'2FA verified successfully!'});
