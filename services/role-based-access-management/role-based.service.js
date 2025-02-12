@@ -3,6 +3,8 @@ const connection=require('../../connection')
 const { getLocalIp, getPublicIp, getClientIp } = require("../getIP");
 const path=require('path');
 const AdmZip = require('adm-zip');
+const xlsx=require('xlsx');
+const fs=require('fs');
 module.exports={
 
     createRole:async function(req){
@@ -43,7 +45,7 @@ module.exports={
             for(let item of modules){
 
                 for(let submodule of item.submodules){
-                    // console.log(submodule)
+                    
                     let pageId=submodule.id;
                     let parentId=submodule.parentId;
                     let view1=submodule.view1;
@@ -106,20 +108,20 @@ module.exports={
 
     editRole:async function(req){
         try{
-            let id=req.id;
+            let id=req.roleId;
             let userId=req.userId;
             let roleId=req.roleId;
             let roleName=req.name;
-            let GAINER=req.gainer;
-            let SIMS=req.sims;
-            let AUDIT=req.audit;
-            let HR=req.hr;
-            let OTHER=req.others;
-            let IT=req.it;
+            let GAINER=req.verticals.gainer;
+            let SIMS=req.verticals.sims;
+            let AUDIT=req.verticals.audit;
+            let HR=req.verticals.hr;
+            let OTHER=req.verticals.other;
+            let IT=req.verticals.it;
             let token=req.token;
             let modules=req.modules;
             let status=req.status;
-            //console.log("modules",modules)
+            //console.log("modules",SIMS,AUDIT,HR,OTHER,IT)
             
             if(!GAINER){
                 GAINER=false;
@@ -145,79 +147,129 @@ module.exports={
             const pool= await connection.connectDB();
             const clientIp = getClientIp(req);
             const localIp = getLocalIp();
-            
+            let moduleIds=[];
             let publicIp = "Fetching public IP..."
             publicIp = await getPublicIp();
             // console.log("public ip ", publicIp);
+            let bitStatus;
+                let query = `UPDATE role_master 
+                SET 
+                    createdby = @userId, 
+                    status = @bitStatus,
+                    SIMS = @SIMS, 
+                    AUDIT = @AUDIT, 
+                    GAINER = @GAINER, 
+                    IT = @IT, 
+                    HR = @HR, 
+                    OTHER = @OTHER             
+                WHERE id = @id`;
+               // status=@status
+               if(status=='Active')
+               {
+                bitStatus=1;
+               }
+               else{
+                bitStatus=0;
+               }
+               //console.log( status, userId, SIMS, AUDIT, GAINER, IT, HR, OTHER, id);
+         await pool.request().input('bitStatus',bitStatus)
+         .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
+         .input('id',id).query(query);
+         //console.log("executed successfully")
+          
+           
 
-            let query = `UPDATE role_master 
-             SET role_name = @roleName, 
-                 createdby = @userId, 
-                 status = @status,
-                 SIMS = @SIMS, 
-                 AUDIT = @AUDIT, 
-                 GAINER = @GAINER, 
-                 IT = @IT, 
-                 HR = @HR, 
-                 OTHER = @OTHER
-                
-             WHERE id = @id`;
-            // status=@status
-      await pool.request().input('roleName',roleName).input('status',status)
-      .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
-      .input('id',id).input('status',status).query(query);
+      let query3=`Select module_id ,moduleParentId from role_module_mapping where role_id=@roleId`;
 
-      let query3=`Select module_id from role_module_mapping where role_id=@roleId`;
-
-     const resultQuery=await pool.request().input('roleId',roleId).query(query3);
+     let resultQuery=await pool.request().input('roleId',roleId).query(query3);
+     
      let query34=''
-    console.log("result ---------",resultQuery)
-
+    //console.log("result ---------",resultQuery)
+    resultQuery = resultQuery.map(module => {
+        return {
+          ...module, // Spread the existing module properties
+          isUpdated: false // Add the new field with default value false
+        };
+      });
             for(let item of modules){
-                for(let submodule of item.submodules){
+                for(let submodule of item){
+                    //console.log("submodule",submodule)
                     let pageId=submodule.id;
                     let parentId=submodule.parentId;
                     let view1=submodule.view1;
                     let add1=submodule.add1;
                     let edit1=submodule.edit1;
                     let delete1=submodule.delete1;
-                    
+                    //console.log(pageId,parentId,view1,add1,edit1,delete1)
+                    //moduleIds.push(pageId);
                     const existingModuleIndex = resultQuery.findIndex(module => module.module_id === pageId);
-                    console.log("existing index ",existingModuleIndex)
+                    //console.log("existing index ",existingModuleIndex)
                     if(existingModuleIndex==-1){
                          query34=`Insert into role_module_mapping(role_id,module_id,view1,add1,delete1,edit1,moduleParentId) 
-                        values(@roleId,@pageId,@view1,@add1,@delete1,@edit1,@parentId)`;
-                       
+                        values(@roleId,@pageId,@view1,@add1,@delete1,@edit1,@parentId)`;                   
                     }
                     else{
-                        query34=`Update role_module_mapping 
-                        set module_id=@parentId,
-                        view1=@view1,
-                        delete1=@delete1,
-                        edit1=@edit1,
-                        add1=@add1
-                        where role_id=@roleId`
+                        resultQuery[existingModuleIndex].isUpdated = true;
+                                query34=`Update role_module_mapping 
+                                set 
+                                view1=@view1,
+                                delete1=@delete1,
+                                edit1=@edit1,
+                                add1=@add1
+                                where role_id=@roleId and moduleParentId=@parentId and module_id=@pageId`;
+                             
+                           
                         
                     }
                     const res=await pool.request().input('roleId',roleId).input('pageId',pageId)
                     .input('parentId',parentId).input('view1',view1).input('add1',add1).input('delete1',delete1)
                     .input('edit1',edit1).query(query34);
-
-                    console.log("res ",res)
+                    let query2=`Insert into Audit_log(roleName,userID,status
+                    ,SIMS
+                    ,AUDIT
+                    ,GAINER
+                    ,IT
+                    ,HR
+                    ,OTHERS,IP,token,operation,roleId)values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,'update role',@roleId)`;
+              
+                    await pool.request().input('roleName',roleName)
+                    .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
+                    .input('publicIp',publicIp).input('token',token).input('roleId',roleId).query(query2);
+                   // console.log("res ",res)
                 }
-            }        
-  
-      let query2=`Insert into Audit_log(roleName,userID,status
-      ,SIMS
-      ,AUDIT
-      ,GAINER
-      ,IT
-      ,HR
-      ,OTHERS,IP,token,operation)values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,'update role')`;
+            
+            }
+            if(resultQuery.length>0){
+                let modulesNotUpdated = resultQuery
+                .filter(module => module.isUpdated === false)  // Filter out modules where isUpdated is false
+                // .map(module => module.module_id);
+        
+                if(modulesNotUpdated){
+                  // console.log("Modules not updated ",modulesNotUpdated)
 
-      await pool.request().input('roleName',roleName)
-      .input('userId',userId).input('SIMS',SIMS).input('AUDIT',AUDIT).input('GAINER',GAINER).input('IT',IT).input('HR',HR).input('OTHER',OTHER)
-      .input('publicIp',publicIp).input('token',token).query(query2);
+                    view1=0;
+                    delete1=0;
+                    add1=0;
+                    edit1=0;
+                    let pageId=modulesNotUpdated[0].module_id
+                    let moduleParentId1=modulesNotUpdated[0].moduleParentId
+                   // console.log(pageId,moduleParentId1)
+                    let query23=`Update role_module_mapping 
+                                        set 
+                                        view1=@view1,
+                                        delete1=@delete1,
+                                        edit1=@edit1,
+                                        add1=@add1
+                                        where role_id=@roleId and moduleParentId=@moduleParentId1 and module_id=@pageId`;
+        
+                                        await pool.request().input('roleId',roleId).input('pageId',pageId)
+                                        .input('moduleParentId1',moduleParentId1).input('view1',view1).input('add1',add1).input('delete1',delete1)
+                                        .input('edit1',edit1).query(query23);
+            }
+                
+        }
+  
+     
         }
         catch(error){
            console.log("error in role service ",error.message) ;
@@ -258,15 +310,15 @@ module.exports={
                     // console.log("----------",result)
                     if(status=='Inactive' || status=='inactive'){
         
-                         query2=`Insert into audit_log(userID,operation,IP,token,status) values(@userId,'delete user',@publicIp,@token,0)`
+                         query2=`Insert into audit_log(userID,operation,IP,token,status,roleId) values(@userId,'delete user',@publicIp,@token,0,@id)`
                     }
                     else{
-                        query2=`Insert into audit_log(userID,operation,IP,token,status) values(@userId,'delete user',@publicIp,@token,1)`
+                        query2=`Insert into audit_log(userID,operation,IP,token,status,roleId) values(@userId,'delete user',@publicIp,@token,1,@id)`
                     }
         
                     await pool.request().
                     input('userId',userId).input('publicIp',publicIp)
-                    .input('token',token).query(query2);
+                    .input('token',token).input('id',id).query(query2);
                     return ;
                 }
                 catch(error){
@@ -274,17 +326,84 @@ module.exports={
                 }
     },
 
-    downloadRoleFormat:async function (req) {
+    downloadRoleFormat:async function (req,res) {
         
         try{
-             const baseFolderPath = path.join(__dirname);
-             let filePaths ;
-             filePaths=path.join(baseFolderPath, 'Role-Access-Format', '');
-              const zip = new AdmZip();
-              zip.addLocalFile(filePaths);
+            const pool=await connection.connectDB();
+            let vertical_ids = req.vertical_ids;
+           // console.log("verticalid ", typeof vertical_ids,vertical_ids);
+             
+             // Ensure vertical_ids is an array of integers
+             if (Array.isArray(vertical_ids) && vertical_ids.length > 0) {
+                 // Convert the array of ids to a comma-separated string
+                 const verticalIdsString = vertical_ids.join(',');
+             
+                 const query = `SELECT * FROM module_master WHERE business_vertical_id IN (${verticalIdsString})`;
+                 const data = await pool.request().query(query);
+                 const map = {};
+                 const result = [];
+             
+                 // Step 2: Organize data into a hierarchy
+                 data.forEach(item => {
+                   map[item.id] = { ...item, submodules: [] };
+                 });
+             
+                 // Step 3: Organize submodules under their parent module
+                 data.forEach(item => {
+                   if (item.parentId === 0) {
+                     // Top-level module
+                     result.push(map[item.id]);
+                   } else {
+                     // Submodule, add to parent module's submodules array
+                     map[item.parentId].submodules.push(map[item.id]);
+                   }
+                 });
+             
+                 // Print the result as a JSON object
+                 console.log(JSON.stringify(result, null, 2));
+                 const flattenedData = await flattenData(data);
+                 console.log(flattenData)
+// Create a new workbook
+const wb = xlsx.utils.book_new();
+
+// Convert the flattened data into a worksheet
+const ws = xlsx.utils.json_to_sheet(flattenedData);
+
+// Add the worksheet to the workbook
+xlsx.utils.book_append_sheet(wb, ws, 'Modules');
+
+const baseFolderPath = path.join(__dirname);
+const filePaths = path.join(baseFolderPath, 'Role-Access-Format', 'Access-Settings-Format.xlsx');
+
+// Ensure the directory exists
+if (!fs.existsSync(path.dirname(filePaths))) {
+  fs.mkdirSync(path.dirname(filePaths), { recursive: true });
+}
+
+// Write the Excel file to the specified location
+xlsx.writeFile(wb, filePaths);
+
+// Log the file path
+//console.log(`Excel file has been written to: ${filePaths}`);
+
+// Create a new zip file
+const zip = new AdmZip();
+
+// Add the Excel file to the zip file
+zip.addLocalFile(filePaths);
+ res.setHeader('Content-Type', 'application/zip');
+ res.setHeader('Content-Disposition', 'attachment; filename=files.zip');
+// console.log(zip)
+ // Send the zip buffer as the response
+ return (zip.toBuffer());
+                
+             } else {
+                 console.log("error in fucntion get access setting based on bvid")
+             }
+            
         }
         catch(error){
-
+console.log("error ",error)
         }
     },
 
@@ -383,3 +502,28 @@ module.exports={
         }
     }
 }
+function flattenData(data) {
+    const rows = [];
+  
+    // Iterate over the main modules and their submodules
+    data.forEach(module => {
+      // Check if the submodules are defined and is an array, if not, initialize it as an empty array
+      const submodules = Array.isArray(module.submodules) ? module.submodules : [];
+  
+      // Add each submodule as a separate row under the same module name
+      submodules.forEach(submodule => {
+        rows.push({
+          module_name: module.module_name, // Parent module name repeats
+          submodule_name: submodule.module_name,
+          view: submodule.view1 === undefined ? '' : (submodule.view1 ? 'Y' : 'N'),
+          edit: submodule.edit1 === undefined ? '' : (submodule.edit1 ? 'Y' : 'N'),
+          delete: submodule.delete1 === undefined ? '' : (submodule.delete1 ? 'Y' : 'N'),
+          add: submodule.add1 === undefined ? '' : (submodule.add1 ? 'Y' : 'N'),
+        });
+      });
+    });
+  
+    return rows;
+  }
+  
+  

@@ -39,7 +39,8 @@ module.exports={
     },
     downloadRoleFormat:async function(req,res) {
         try{
-            const result=await roleAccessService.downloadRoleFormat(req);
+            //console.log(req)
+            const result=await roleAccessService.downloadRoleFormat(req.body.data,res);
               res.send(result);
         }
         catch(error){
