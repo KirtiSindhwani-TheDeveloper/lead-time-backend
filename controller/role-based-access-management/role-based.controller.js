@@ -49,7 +49,9 @@ module.exports={
     },
     uploadRoleFormat:async function(req,res){
         try{
-            const result=await roleAccessService.uploadRoleFormat(req.body);
+            const filePath = req.file.path;
+          
+            const result=await roleAccessService.uploadRoleFormat(req.body.data,filePath);
             res.status(200).json({message:'Role uploaded Successfully'})
         }
         catch(error){

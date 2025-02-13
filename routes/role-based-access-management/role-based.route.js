@@ -24,7 +24,7 @@ router.get('/view',roleAccessController.viewRole)
 router.post('/edit',roleAccessController.editRole)
 router.post('/delete',roleAccessController.deleteRole)
 router.post('/download-role-format',roleAccessController.downloadRoleFormat)
-router.get('/upload-role',upload.single('excelFile'),roleAccessController.uploadRoleFormat)
+router.post('/upload-role',upload.single('excelFile'),roleAccessController.uploadRoleFormat)
 router.post('/access-setting-on-BVID',roleAccessController.getAccessSettingBasedOnRole)
 router.post('/edit-access-setting-on-BVID',roleAccessController.getEditAccessSettingBasedOnRole)
 module.exports=router;
