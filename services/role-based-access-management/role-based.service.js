@@ -717,7 +717,13 @@ function readExcelFile(filePath) {
     });
     return obj;
   });
-
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error('Error deleting file:', err);
+    } else {
+      console.log('File deleted successfully!');
+    }
+  });
   // Output the result (or save it to a file)
   //console.log(JSON.stringify(data, null, 2));
   return data;
