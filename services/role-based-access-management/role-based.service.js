@@ -511,9 +511,15 @@ module.exports = {
         .query(query4);
       let insertedId = result[0].id;
       // console.log("inserted id ",insertedId);
-
+      isWrongFile=false;
       for (let item of excelData) {
-        if (item["module name"] == "") {
+        
+        if(!item["module name"]){
+            isWrongFile=true;
+            return isWrongFile
+        }
+        if (item["module name"] == "" ) {
+            console.log("Not avilable")
           break;
         }
         let businessVertical = item["business vertical"];

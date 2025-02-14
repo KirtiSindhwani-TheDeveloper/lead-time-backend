@@ -52,7 +52,7 @@ module.exports={
             const filePath = req.file.path;
           
             const result=await roleAccessService.uploadRoleFormat(req.body.data,filePath);
-            res.status(200).json({message:'Role uploaded Successfully'})
+            res.status(200).json({message:'Role uploaded Successfully',isWrongFile:result})
         }
         catch(error){
             res.status(201).json({message:'Unable to upload Format',error:error.message })

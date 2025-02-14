@@ -159,7 +159,7 @@ const generate2FA = async () => {
   try{
     const pool=await connection.connectDB();
 
-    let query=`Update [user] set secretKey=@secret ,token=@token where userId=@userId;`
+    let query=`Update [user] set secretKey=@secret ,token=@token ,isGoogleAuthentication=1 where userId=@userId;`
 
     await pool.request().input('userId',userId)
     .input('token',token).input('secret',secret).query(query);
