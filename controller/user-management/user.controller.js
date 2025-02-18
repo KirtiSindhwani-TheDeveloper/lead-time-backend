@@ -50,5 +50,15 @@ module.exports={
         catch(error){
             res.status(201).send({error:error.message})
         }
+    },
+
+    requestNewMail:async function(req,res){
+        try{
+            const result=await userService.requestNewMail(req.body);
+            return res.status(200).send({data:result})
+        }
+        catch(error){
+            res.status(201).send({error:error.message})
+        }
     }
 }

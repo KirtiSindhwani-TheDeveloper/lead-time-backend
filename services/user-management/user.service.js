@@ -80,9 +80,10 @@ module.exports={
             .input('publicIp',publicIp).input('token',token).input('newUserIdFormatted',newUserIdFormatted)
             .query(query2)
 
-            console.log("link generated ",link)
-            const expiryTime = Date.now() + (15 * 60 * 1000); // 15 minutes from now
-            const uniqueLink = `${link}?expiry=${expiryTime}`;
+           // console.log("link generated ",link)
+            const expiryTime = Date.now() + (5 * 60 * 1000); // 15 minutes from now
+            const encodedUserName = encodeURIComponent(userName);
+            const uniqueLink = `${link}?expiry=${expiryTime}?email=${email}?userName=${encodedUserName}`;
            // console.log("unique link ",uniqueLink)
             let mailOptions = {
                 from: process.env.EMAILID, // Sender address
@@ -243,6 +244,44 @@ module.exports={
         }
     },
     
+    requestNewMail(req){
+        try{
+
+            let userName=req.userName;
+            let email=req.email;
+            let link=req.link;
+            // email='kirti.s@sparecare.in'
+            // link='http://103.30.72.109/update-user-password'
+            // userName='Kirti'
+          //  console.log("1234",userName,email)
+         // userName='Kirti Sindhwani'
+            const expiryTime = Date.now() + (5 * 60 * 1000); // 15 minutes from now
+            const encodedUserName = encodeURIComponent(userName);
+            //console.log("user anme ",encodedUserName)
+            const uniqueLink = `${link}?expiry=${expiryTime}?email=${email}?userName=${encodedUserName}`;
+           // console.log("unique link ",uniqueLink)
+            let mailOptions = {
+                from: process.env.EMAILID, // Sender address
+                to: email, // List of receivers
+                subject: 'Create Password', // Subject line
+                html: `Dear ${userName},<br><br>
+                You can create your password with the link given below:<br>
+               Link for accessing:- ${uniqueLink} `, // Plain text body
+                // html: '<b>This is a test email sent from Node.js using Nodemailer!</b>' // HTML body (optional)
+              };
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.log('Error: ' + error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+        }
+        catch(error){
+            return error;
+            
+        }
+    }
 }
 async function generatePassword(length = 12) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';
@@ -256,3 +295,4 @@ async function generatePassword(length = 12) {
 
     return password;
 }
+

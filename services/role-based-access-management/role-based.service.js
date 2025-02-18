@@ -257,7 +257,7 @@ module.exports = {
                     ,GAINER
                     ,IT
                     ,HR
-                    ,OTHERS,IP,token,operation,roleId)values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,'update role',@roleId)`;
+                    ,OTHERS,IP,token,operation,roleId,moduleParentId)values(@roleName,@userId,1,@SIMS,@AUDIT,@GAINER,@IT,@HR,@OTHER, @publicIp,@token,'update role',@roleId,@parentId)`;
 
           await pool
             .request()
@@ -272,6 +272,7 @@ module.exports = {
             .input("publicIp", publicIp)
             .input("token", token)
             .input("roleId", roleId)
+            .input("parentId", parentId)
             .query(query2);
           // console.log("res ",res)
         }
@@ -677,7 +678,7 @@ module.exports = {
               ...item1,
               view1:
                 updatedItem.view1 !== undefined ? updatedItem.view1 : false,
-              edit1: updatedItem.edit !== undefined ? updatedItem.edit : false,
+              edit1: updatedItem.edit1 !== undefined ? updatedItem.edit1 : false,
               add1: updatedItem.add1 !== undefined ? updatedItem.add1 : false,
               delete1:
                 updatedItem.delete1 !== undefined ? updatedItem.delete1 : false,
