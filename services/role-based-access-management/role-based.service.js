@@ -283,14 +283,15 @@ module.exports = {
         ); // Filter out modules where isUpdated is false
         // .map(module => module.module_id);
 
-        if (modulesNotUpdated) {
+        if (modulesNotUpdated.length>0) {
           // console.log("Modules not updated ",modulesNotUpdated)
 
           view1 = 0;
           delete1 = 0;
           add1 = 0;
           edit1 = 0;
-          let pageId = modulesNotUpdated[0].module_id;
+          let pageId = modulesNotUpdated[0]?.module_id;
+          console.log("pageId",pageId,modulesNotUpdated)
           let moduleParentId1 = modulesNotUpdated[0].moduleParentId;
           // console.log(pageId,moduleParentId1)
           let query23 = `Update role_module_mapping 
